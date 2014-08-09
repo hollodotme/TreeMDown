@@ -22,14 +22,36 @@ class HTMLLeaf extends FileSystem\Leaf
 	public function getOutput()
 	{
 		$dom = new \DOMDocument( '1.0', 'UTF-8' );
-		$a   = $dom->createElement( 'a', $this->error ?: $this->filename );
-		$a->setAttribute( 'href', '#' );
-		$a->setAttribute( 'data-filepath', $this->filepath );
-		$a->setAttribute( 'data-level', $this->_nesting_level );
-		$a->setAttribute( 'data-filename', $this->filename );
-		$a->setAttribute( 'data-active', $this->active ? '1' : '0' );
 
-		$dom->appendChild($a);
+		if ( !empty($this->error) )
+		{
+			$a = $dom->createElement( 'span', $this->error );
+			$a->setAttribute( 'class', 'small text-danger' );
+		}
+		else
+		{
+			$a = $dom->createElement( 'a', $this->filename );
+
+			$url_query = http_build_query(
+				array(
+					's' => $this->_search_filter,
+					'f' => $this->getFilePath( true ),
+				)
+			);
+
+			$a->setAttribute( 'href', '?' . $url_query );
+			$a->setAttribute( 'data-filepath', $this->getFilePath( true ) );
+			$a->setAttribute( 'data-level', $this->_nesting_level );
+			$a->setAttribute( 'data-filename', $this->filename );
+			$a->setAttribute( 'data-active', $this->active ? '1' : '0' );
+
+			if ( $this->active )
+			{
+				$a->setAttribute( 'style', 'font-weight: bold; font-style: italic' );
+			}
+		}
+
+		$dom->appendChild( $a );
 
 		return $dom->documentElement;
 	}

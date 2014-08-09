@@ -34,11 +34,11 @@ class Tree extends Entry implements \Iterator, \Countable
 	protected $_file_filter = "#\.md$#";
 
 	/**
-	 * Current file
+	 * Root directory
 	 *
 	 * @var string
 	 */
-	protected $_current_file = '';
+	protected $_root_dir = '';
 
 	/**
 	 * Flags
@@ -81,16 +81,6 @@ class Tree extends Entry implements \Iterator, \Countable
 	public function setLeafObjectClass( $leaf_object_class )
 	{
 		$this->_leaf_object_class = $leaf_object_class;
-	}
-
-	/**
-	 * Set the current filepath
-	 *
-	 * @param string $current_file filepath
-	 */
-	public function setCurrentFile( $current_file )
-	{
-		$this->_current_file = realpath( $current_file ) ?: null;
 	}
 
 	/**
@@ -208,12 +198,6 @@ class Tree extends Entry implements \Iterator, \Countable
 		}
 		else
 		{
-			if ( !is_null( $current_file ) && !is_null( $dir ) )
-			{
-				// Set the tree active?
-				$this->active = preg_match( "#^{$dir}#", $current_file );
-			}
-
 			if ( !is_null( $dir ) )
 			{
 				$items = scandir( $dir );
@@ -228,10 +212,12 @@ class Tree extends Entry implements \Iterator, \Countable
 						{
 							// Recursion
 							$sub_tree = new static( $path, $this->_nesting_level + 1 );
-							$sub_tree->setCurrentFile( $current_file );
+							$sub_tree->setRootDir( $this->_root_dir );
+							$sub_tree->setCurrentFile( $this->getCurrentFile( true ) );
 							$sub_tree->setIgnore( $this->_ignore );
 							$sub_tree->setFileFilter( $this->_file_filter );
 							$sub_tree->setFlags( $this->_flags );
+							$sub_tree->setSearchFilter( $this->_search_filter );
 							$sub_tree->buildTree();
 
 							if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) || $sub_tree->count() > 0 )
@@ -241,11 +227,8 @@ class Tree extends Entry implements \Iterator, \Countable
 						}
 						elseif ( preg_match( $this->_file_filter, $item ) )
 						{
-							$leaf           = $this->_getLeafObject( $path, $this->_nesting_level );
-							$leaf->path     = dirname( $path );
-							$leaf->filename = $item;
-							$leaf->active   = ($path == $current_file);
-							$leaf->error    = '';
+							$leaf        = $this->_getLeafObject( $path, $this->_nesting_level );
+							$leaf->error = '';
 
 							$tree['files'][ $item ] = $leaf;
 						}
@@ -328,6 +311,12 @@ class Tree extends Entry implements \Iterator, \Countable
 					$this->_leaf_object_class
 				)
 			);
+		}
+		else
+		{
+			$leaf_object->setRootDir( $this->_root_dir );
+			$leaf_object->setCurrentFile( $this->getCurrentFile( true ) );
+			$leaf_object->setSearchFilter( $this->_search_filter );
 		}
 
 		return $leaf_object;
