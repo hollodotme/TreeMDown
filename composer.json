@@ -1,0 +1,28 @@
+{
+    "name": "hollodotme/treemdown",
+    "description": "A PHP class for browsing markdown files with rendering and syntax highlighting",
+    "keywords": [
+        "markdown",
+        "markdown extra",
+        "parser",
+        "tree"
+    ],
+    "homepage": "https://github.com/hollodotme/treemdown",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Holger Woltersdorf",
+            "email": "hw@hollo.me",
+            "homepage": "http://github.com/hollodotme"
+        }
+    ],
+    "require": {
+        "erusev/parsedown-extra": "~0.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "hollodotme\\TreeMDown\\": "dist/"
+        }
+    }
+}
