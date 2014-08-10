@@ -20,27 +20,6 @@ class Tree extends Entry implements \Iterator, \Countable
 	const EXCLUDE_EMPTY_FOLDERS = 1;
 
 	/**
-	 * Ignore pattern
-	 *
-	 * @var string
-	 */
-	protected $_ignore = "#^\.#";
-
-	/**
-	 * Filename filter pattern
-	 *
-	 * @var string
-	 */
-	protected $_file_filter = "#\.md$#";
-
-	/**
-	 * Root directory
-	 *
-	 * @var string
-	 */
-	protected $_root_dir = '';
-
-	/**
 	 * Flags
 	 *
 	 * @var int
@@ -64,13 +43,23 @@ class Tree extends Entry implements \Iterator, \Countable
 	/**
 	 * Constructor
 	 *
-	 * @param string $filepath
-	 * @param int    $nesting_level
+	 * @param Search $search   Search
+	 * @param string $filepath Filepath
 	 */
-	public function __construct( $filepath, $nesting_level = 0 )
+	public function __construct( Search $search, $filepath )
 	{
-		parent::__construct( $filepath, $nesting_level );
-		$this->_leaf_object_class = __NAMESPACE__ . '\\Leaf';
+		parent::__construct( $search, $filepath );
+		$this->setLeafObjectClass( __NAMESPACE__ . '\\Leaf' );
+	}
+
+	/**
+	 * Return whether the tree is valid
+	 *
+	 * @return bool
+	 */
+	public function isValid()
+	{
+		return (parent::isValid() && !empty($this->_leaf_object_class));
 	}
 
 	/**
@@ -84,23 +73,13 @@ class Tree extends Entry implements \Iterator, \Countable
 	}
 
 	/**
-	 * Set the ignore pattern
+	 * Return the leaf object class
 	 *
-	 * @param string $ignore RegEx pattern
+	 * @return string
 	 */
-	public function setIgnore( $ignore )
+	public function getLeafObjectClass()
 	{
-		$this->_ignore = $ignore;
-	}
-
-	/**
-	 * Set the file filter pattern
-	 *
-	 * @param string $file_filter RegEx pattern
-	 */
-	public function setFileFilter( $file_filter )
-	{
-		$this->_file_filter = $file_filter;
+		return $this->_leaf_object_class;
 	}
 
 	/**
@@ -178,69 +157,86 @@ class Tree extends Entry implements \Iterator, \Countable
 	}
 
 	/**
-	 * Builds the tree recursive
+	 * Return whether the tree is ignored
 	 *
-	 * @return Tree
+	 * @return bool
 	 */
-	public function buildTree()
+	public function isIgnored()
 	{
-		$tree         = array( 'dirs' => array(), 'files' => array() );
-		$dir          = $this->filepath;
-		$current_file = $this->_current_file ?: null;
+		$is_ignored = false;
 
-		if ( empty($dir) )
+		if ( parent::isIgnored() )
 		{
-			$dir = null;
-
-			$leaf             = $this->_getLeafObject( '', $this->_nesting_level );
-			$leaf->error      = 'Directory does not exist.';
-			$this->_entries[] = $leaf;
+			$is_ignored = true;
 		}
 		else
 		{
-			if ( !is_null( $dir ) )
+			if ( $this->_flags & self::EXCLUDE_EMPTY_FOLDERS )
 			{
-				$items = scandir( $dir );
-
-				foreach ( $items as $item )
+				if ( $this->count() == 0 )
 				{
-					if ( !preg_match( $this->_ignore, $item ) )
+					echo $this->getFilePath( true ), " - ignored<br>";
+					$is_ignored = true;
+				}
+			}
+		}
+
+		return $is_ignored;
+	}
+
+	/**
+	 * Builds the tree recursive
+	 */
+	public function buildTree()
+	{
+		if ( !$this->isValid() )
+		{
+			throw new \RuntimeException( 'The tree is not set up properly.' );
+		}
+		else
+		{
+			$tree        = array( 'dirs' => array(), 'files' => array() );
+			$current_dir = $this->_filepath;
+
+			$iterator = new \DirectoryIterator( $current_dir );
+
+			foreach ( $iterator as $file_info )
+			{
+				if ( !$file_info->isDot() )
+				{
+					// Subtree?
+					if ( $file_info->isDir() )
 					{
-						$path = $dir . DIRECTORY_SEPARATOR . $item;
+						// Recursion
+						$sub_tree = new static( $this->_search, $file_info->getPathname() );
+						$sub_tree->setFlags( $this->_flags );
+						$sub_tree->setLeafObjectClass( $this->_leaf_object_class );
+						$sub_tree->buildTree();
 
-						if ( is_dir( $path ) )
+						if ( !$sub_tree->isIgnored() )
 						{
-							// Recursion
-							$sub_tree = new static( $path, $this->_nesting_level + 1 );
-							$sub_tree->setRootDir( $this->_root_dir );
-							$sub_tree->setCurrentFile( $this->getCurrentFile( true ) );
-							$sub_tree->setIgnore( $this->_ignore );
-							$sub_tree->setFileFilter( $this->_file_filter );
-							$sub_tree->setFlags( $this->_flags );
-							$sub_tree->setSearchFilter( $this->_search_filter );
-							$sub_tree->buildTree();
-
-							if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) || $sub_tree->count() > 0 )
-							{
-								$tree['dirs'][ $item ] = $sub_tree;
-							}
+							$tree['dirs'][ $file_info->getFilename() ] = $sub_tree;
 						}
-						elseif ( preg_match( $this->_file_filter, $item ) )
-						{
-							$leaf        = $this->_getLeafObject( $path, $this->_nesting_level );
-							$leaf->error = '';
+					}
+					// Leaf!
+					elseif ( $file_info->isFile() )
+					{
+						$leaf = $this->getLeafObject( $file_info->getPathname() );
 
-							$tree['files'][ $item ] = $leaf;
+						if ( !$leaf->isIgnored() )
+						{
+							$tree['files'][ $file_info->getFilename() ] = $leaf;
 						}
 					}
 				}
+			}
 
-				if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) && empty($tree['files']) )
-				{
-					$leaf                  = $this->_getLeafObject( $dir, $this->_nesting_level );
-					$leaf->error           = "Directory has no files matching the filter.";
-					$tree['files']['none'] = $leaf;
-				}
+			// Error on empty directories
+			if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) && empty($tree['files']) )
+			{
+				$leaf = $this->getLeafObject( $current_dir );
+				$leaf->setError( "Directory has no files matching the filter." );
+				$tree['files'][''] = $leaf;
 			}
 
 			uksort( $tree['dirs'], "strnatcasecmp" );
@@ -251,8 +247,6 @@ class Tree extends Entry implements \Iterator, \Countable
 				array_values( $tree['files'] )
 			);
 		}
-
-		return $this;
 	}
 
 	/**
@@ -264,13 +258,13 @@ class Tree extends Entry implements \Iterator, \Countable
 	{
 		$string = str_repeat( ' ', max( 0, $this->_nesting_level ) );
 
-		if ( $this->active )
+		if ( $this->isActive() )
 		{
-			$string .= '**' . $this->filename . '**';
+			$string .= '**' . $this->_filename . '**';
 		}
 		else
 		{
-			$string .= $this->filename;
+			$string .= $this->_filename;
 		}
 
 		foreach ( $this->_entries as $entry )
@@ -295,28 +289,22 @@ class Tree extends Entry implements \Iterator, \Countable
 	 * Return a new leaf object
 	 *
 	 * @param string $filepath
-	 * @param int    $nesting_level
 	 *
 	 * @return Leaf
 	 */
-	protected function _getLeafObject( $filepath, $nesting_level )
+	public function getLeafObject( $filepath )
 	{
-		$leaf_object = new $this->_leaf_object_class( $filepath, $nesting_level + 1 );
+		$leaf_object = new $this->_leaf_object_class( $this->_search, $filepath );
 
 		if ( !($leaf_object instanceof Leaf) )
 		{
 			throw new \RuntimeException(
 				sprintf(
-					'%s is not a subclass of hollodotme\\TreeMDown\\FileSystem\\Leaf',
-					$this->_leaf_object_class
+					'%s is not a subclass of %s\\Leaf',
+					$this->_leaf_object_class .
+					__NAMESPACE__
 				)
 			);
-		}
-		else
-		{
-			$leaf_object->setRootDir( $this->_root_dir );
-			$leaf_object->setCurrentFile( $this->getCurrentFile( true ) );
-			$leaf_object->setSearchFilter( $this->_search_filter );
 		}
 
 		return $leaf_object;

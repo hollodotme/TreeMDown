@@ -1,0 +1,53 @@
+/**
+ * TreeMDown additional styles
+ * author: hollodotme
+ * url: https://github.com/hollodotme/TreeMDown
+ */
+
+.tmd-tree-list {
+    padding-left: 16px;
+    list-style-type: none;
+    margin: 2px 0;
+}
+
+.tmd-tree-entry {
+    margin: 0;
+    padding: 0;
+}
+
+.tmd-tree-leaf {
+    font-size: 95%;
+    color: #888;
+}
+
+.tmd-tree-leaf.active {
+    font-style: italic;
+    color: #555;
+}
+
+.tmd-folder-link span.glyphicon,
+.tmd-tree-leaf span.glyphicon {
+    margin-right: 5px;
+    font-size: 85%;
+}
+
+.tmd-tree-leaf span.glyphicon {
+    color: #999;
+}
+
+.tmd-folder-link span.badge,
+.tmd-tree-leaf span.badge {
+    background: #999;
+    font-size: 80%;
+    padding: 2px 5px;
+    margin-top: 2px;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.tmd-folder-link span.badge.active,
+.tmd-tree-leaf span.badge.active {
+    background: #66afe9;
+    font-weight: bold;
+}
+

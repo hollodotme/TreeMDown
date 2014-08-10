@@ -20,7 +20,27 @@ class Leaf extends Entry
 	 *
 	 * @var string
 	 */
-	public $error = '';
+	protected $_error = '';
+
+	/**
+	 * Return the error
+	 *
+	 * @return string
+	 */
+	public function getError()
+	{
+		return $this->_error;
+	}
+
+	/**
+	 * Set an error
+	 *
+	 * @param string $error
+	 */
+	public function setError( $error )
+	{
+		$this->_error = $error;
+	}
 
 	/**
 	 * Return a string representation of this instance
@@ -31,17 +51,17 @@ class Leaf extends Entry
 	{
 		$string = str_repeat( ' ', $this->_nesting_level );
 
-		if ( !empty($this->error) )
+		if ( !empty($this->_error) )
 		{
-			$string .= '!!! ' . $this->error . ' !!!';
+			$string .= '!!! ' . $this->_error . ' !!!';
 		}
-		elseif ( $this->active )
+		elseif ( $this->isActive() )
 		{
-			$string .= '**' . $this->filename . '**';
+			$string .= '**' . $this->_filename . '**';
 		}
 		else
 		{
-			$string .= $this->filename;
+			$string .= $this->_filename;
 		}
 
 		return $string;
