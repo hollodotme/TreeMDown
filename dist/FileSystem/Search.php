@@ -164,16 +164,21 @@ class Search
 	 */
 	public function setCurrentFile( $current_file )
 	{
-		$current_file        = trim( $current_file, "\t\r\n\0\x0B/" );
-		$this->_current_file = realpath( $this->_root_dir . DIRECTORY_SEPARATOR . $current_file );
+		$current_file = trim( $current_file, "\t\r\n\0\x0B/" );
+		$current_file = realpath( $this->_root_dir . DIRECTORY_SEPARATOR . $current_file );
 
-		if ( !empty($this->_current_file) )
+		if ( !empty($current_file) )
 		{
 			$root_dir = preg_quote( $this->_root_dir, '#' );
-			if ( !preg_match( "#^{$root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", $this->_current_file ) )
+			if ( !preg_match( "#^{$root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", $current_file ) )
 			{
 				$this->_current_file_valid = false;
 				$this->_current_file       = '';
+			}
+			else
+			{
+				$this->_current_file_valid = true;
+				$this->_current_file       = $current_file;
 			}
 		}
 		else
@@ -189,7 +194,22 @@ class Search
 	 */
 	public function isCurrentFileValid()
 	{
-		return $this->_current_file_valid;
+		$is_valid = true;
+
+		if ( empty($this->_current_file) )
+		{
+			$is_valid = false;
+		}
+		elseif ( !$this->_current_file_valid )
+		{
+			$is_valid = false;
+		}
+		elseif ( $this->isPathIgnored( $this->_current_file ) )
+		{
+			$is_valid = false;
+		}
+
+		return $is_valid;
 	}
 
 	/**
@@ -201,16 +221,66 @@ class Search
 	 */
 	public function getCurrentFile( $strip_root_dir = false )
 	{
-		if ( !empty($this->_current_file) && !empty($strip_root_dir) )
+		$file = '';
+
+		if ( $this->isCurrentFileValid() )
 		{
-			$file = preg_replace( "#^{$this->_root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", '', $this->_current_file );
-		}
-		else
-		{
-			$file = $this->_current_file;
+			if ( !empty($strip_root_dir) )
+			{
+				$file = preg_replace(
+					"#^{$this->_root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", '',
+					$this->_current_file
+				);
+			}
+			else
+			{
+				$file = $this->_current_file;
+			}
 		}
 
 		return $file;
+	}
+
+	/**
+	 * Return whether the filepath is ignored
+	 *
+	 * @param string $filepath Filepath
+	 *
+	 * @return bool
+	 */
+	public function isPathIgnored( $filepath )
+	{
+		$is_ignored = false;
+		$filename   = basename( $filepath );
+
+		if ( is_file( $filepath ) )
+		{
+			$patterns = array();
+			foreach ( $this->_include_patterns as $include )
+			{
+				$patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
+			}
+
+			$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
+			if ( !preg_match( $pattern, $filename ) )
+			{
+				$is_ignored = true;
+			}
+		}
+
+		$patterns = array();
+		foreach ( $this->_exclude_patterns as $exclude )
+		{
+			$patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
+		}
+
+		$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
+		if ( preg_match( $pattern, $filename ) )
+		{
+			$is_ignored = true;
+		}
+
+		return $is_ignored;
 	}
 
 	/**
@@ -228,7 +298,7 @@ class Search
 
 			if ( file_exists( $this->_root_dir ) && !empty($this->_search_term) )
 			{
-				$search_term = escapeshellarg( $this->_search_term );
+				$search_term = escapeshellarg( addcslashes( $this->_search_term, '-' ) );
 				$root_dir    = escapeshellarg( $this->_root_dir );
 
 				$excludes = array();

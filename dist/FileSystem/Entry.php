@@ -94,45 +94,6 @@ class Entry
 	}
 
 	/**
-	 * Return whether this entry is ignored
-	 *
-	 * @return bool
-	 */
-	public function isIgnored()
-	{
-		$is_ignored = false;
-
-		if ( is_file( $this->_filepath ) )
-		{
-			$patterns = array();
-			foreach ( $this->_search->getIncludePatterns() as $include )
-			{
-				$patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
-			}
-
-			$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
-			if ( !preg_match( $pattern, $this->_filename ) )
-			{
-				$is_ignored = true;
-			}
-		}
-
-		$patterns = array();
-		foreach ( $this->_search->getExcludePatterns() as $exclude )
-		{
-			$patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
-		}
-
-		$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
-		if ( preg_match( $pattern, $this->_filename ) )
-		{
-			$is_ignored = true;
-		}
-
-		return $is_ignored;
-	}
-
-	/**
 	 * Return the search
 	 *
 	 * @return Search

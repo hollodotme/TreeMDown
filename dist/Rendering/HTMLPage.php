@@ -106,6 +106,8 @@ class HTMLPage
 		$this->_addHeadSection();
 		$this->_addBodySection();
 
+		$this->_dom->formatOutput = false;
+
 		return $this->_dom->saveHTML();
 	}
 

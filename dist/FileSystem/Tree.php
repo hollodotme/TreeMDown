@@ -104,6 +104,8 @@ class Tree extends Entry implements \Iterator, \Countable
 
 	/**
 	 * Return the current element
+	 *
+	 * @return null|Tree|Leaf|Entry
 	 */
 	public function current()
 	{
@@ -157,31 +159,33 @@ class Tree extends Entry implements \Iterator, \Countable
 	}
 
 	/**
-	 * Return whether the tree is ignored
+	 * Return whether this tree contains the $filepath
+	 *
+	 * @param string $filepath Filepath
 	 *
 	 * @return bool
 	 */
-	public function isIgnored()
+	public function containsPath( $filepath )
 	{
-		$is_ignored = false;
+		$contains_path = false;
 
-		if ( parent::isIgnored() )
+		$this->rewind();
+
+		while ( !$contains_path && $this->valid() )
 		{
-			$is_ignored = true;
-		}
-		else
-		{
-			if ( $this->_flags & self::EXCLUDE_EMPTY_FOLDERS )
+			if ( $this->current()->getFilePath( false ) == $filepath )
 			{
-				if ( $this->count() == 0 )
-				{
-					echo $this->getFilePath( true ), " - ignored<br>";
-					$is_ignored = true;
-				}
+				$contains_path = true;
 			}
+			elseif ( $this->current() instanceof Tree )
+			{
+				$contains_path = $this->current()->containsPath( $filepath );
+			}
+
+			$this->next();
 		}
 
-		return $is_ignored;
+		return $contains_path;
 	}
 
 	/**
@@ -202,7 +206,7 @@ class Tree extends Entry implements \Iterator, \Countable
 
 			foreach ( $iterator as $file_info )
 			{
-				if ( !$file_info->isDot() )
+				if ( !$file_info->isDot() && !$this->_search->isPathIgnored( $file_info->getPathname() ) )
 				{
 					// Subtree?
 					if ( $file_info->isDir() )
@@ -213,7 +217,7 @@ class Tree extends Entry implements \Iterator, \Countable
 						$sub_tree->setLeafObjectClass( $this->_leaf_object_class );
 						$sub_tree->buildTree();
 
-						if ( !$sub_tree->isIgnored() )
+						if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) || $sub_tree->count() > 0 )
 						{
 							$tree['dirs'][ $file_info->getFilename() ] = $sub_tree;
 						}
@@ -221,12 +225,9 @@ class Tree extends Entry implements \Iterator, \Countable
 					// Leaf!
 					elseif ( $file_info->isFile() )
 					{
-						$leaf = $this->getLeafObject( $file_info->getPathname() );
-
-						if ( !$leaf->isIgnored() )
-						{
-							$tree['files'][ $file_info->getFilename() ] = $leaf;
-						}
+						$tree['files'][ $file_info->getFilename() ] = $this->getLeafObject(
+							$file_info->getPathname()
+						);
 					}
 				}
 			}
