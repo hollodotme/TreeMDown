@@ -76,6 +76,15 @@
     line-height: normal;
 }
 
+.tmd-toc-1.nav > li > .tmd-toc-2.nav {
+    display: none;
+}
+
+.tmd-toc-1.nav > li.active > .tmd-toc-2.nav {
+    display: block;
+}
+
+
 .tmd-toc-1.nav li,
 .tmd-toc-2.nav li {
     list-style-type: none;
