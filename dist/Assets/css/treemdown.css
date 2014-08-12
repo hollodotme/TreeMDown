@@ -43,6 +43,7 @@
     margin-top: 2px;
     font-style: normal;
     font-weight: normal;
+    margin-left: 10px;
 }
 
 .tmd-folder-link span.badge.active,
@@ -51,3 +52,72 @@
     font-weight: bold;
 }
 
+
+#tmd-nav {
+    margin-top: 20px;
+}
+
+#tmd-main-content {
+    margin-top: 20px;
+}
+
+#toc {
+    position: fixed;
+    top: 75px;
+}
+
+.tmd-toc-1,
+.tmd-toc-1.nav,
+.tmd-toc-2,
+.tmd-toc-2.nav {
+    list-style-type: none;
+    margin: 5px 0;
+    padding: 0;
+    line-height: normal;
+}
+
+.tmd-toc-1.nav li,
+.tmd-toc-2.nav li {
+    list-style-type: none;
+    margin: 5px 0;
+    padding: 0;
+}
+
+.tmd-toc-1.nav li {
+    margin: 8px 0;
+}
+
+.tmd-toc-2.nav li {
+    font-size: 90%;
+}
+
+.tmd-toc-1.nav li a{
+    border-left: 2px solid #fff;
+    padding: 0 0 0 5px;
+    text-decoration: none;
+    display: block;
+    margin: 0;
+}
+
+.tmd-toc-1.nav li a:hover,
+.tmd-toc-1.nav li.active a {
+    border-left: 2px solid #b92c28;
+    text-decoration: none;
+    background: none;
+}
+
+.tmd-toc-2.nav li a,
+.tmd-toc-1.nav > li.active li a {
+    border-left: 1px solid #fff;
+    text-decoration: none;
+    display: block;
+    margin: 0;
+    padding: 0 0 0 18px;
+}
+
+.tmd-toc-2.nav li a:hover,
+.tmd-toc-1.nav > li.active li.active a {
+    border-left: 1px solid #b92c28;
+    text-decoration: none;
+    background: none;
+}

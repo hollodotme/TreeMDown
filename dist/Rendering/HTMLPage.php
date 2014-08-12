@@ -51,6 +51,13 @@ class HTMLPage
 	protected $_company = 'Company';
 
 	/**
+	 * Table of contents
+	 *
+	 * @var null|\DOMDocument
+	 */
+	protected $_toc = null;
+
+	/**
 	 * Constructor
 	 *
 	 * @param HTMLTree $tree
@@ -64,6 +71,8 @@ class HTMLPage
 
 		$this->_dom = $dom_implementation->createDocument( '', 'html', $doc_type );
 		$this->_dom->documentElement->setAttribute( 'lang', 'en' );
+
+		$this->_toc = new \DOMDocument( '1.0', 'UTF-8' );
 	}
 
 	/**
@@ -206,12 +215,14 @@ class HTMLPage
 	{
 		$body = $this->_dom->createElement( 'body' );
 		$body->setAttribute( 'role', 'document' );
+		$body->setAttribute( 'data-spy', 'scroll' );
+		$body->setAttribute( 'data-target', '#toc' );
+		$body->setAttribute( 'data-offset', '75' );
 
 		$this->_addHeaderSection( $body );
 
 		$container = $this->_dom->createElement( 'div' );
 		$container->setAttribute( 'class', 'container-fluid' );
-		$container->setAttribute( 'style', 'padding-top: 50px' );
 		$container->setAttribute( 'role', 'main' );
 		$body->appendChild( $container );
 
@@ -220,12 +231,16 @@ class HTMLPage
 		$container->appendChild( $row );
 
 		$nav = $this->_dom->createElement( 'div' );
-		$nav->setAttribute( 'class', 'col-md-3 col-sm-2 hidden-xs' );
+		$nav->setAttribute( 'class', 'col-lg-3 col-md-4 col-sm-4 hidden-xs' );
 		$row->appendChild( $nav );
 
 		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'col-md-9 col-sm-10 col-xs-12' );
+		$content->setAttribute( 'class', 'col-lg-7 col-md-8 col-sm-8 col-xs-12' );
 		$row->appendChild( $content );
+
+		$toc = $this->_dom->createElement( 'div' );
+		$toc->setAttribute( 'class', 'col-lg-2 hidden-md' );
+		$row->appendChild( $toc );
 
 		$this->_addNavSection( $nav );
 		$this->_addContentSection( $content );
@@ -233,6 +248,8 @@ class HTMLPage
 		$this->_addScriptSection( $body );
 
 		$this->_dom->documentElement->appendChild( $body );
+
+		$this->_addTOCSection( $toc );
 	}
 
 	/**
@@ -402,15 +419,8 @@ class HTMLPage
 	{
 		$panel = $this->_dom->createElement( 'div' );
 		$panel->setAttribute( 'class', 'panel panel-default' );
+		$panel->setAttribute( 'id', 'tmd-nav' );
 		$nav->appendChild( $panel );
-
-		$heading = $this->_dom->createElement( 'div' );
-		$heading->setAttribute( 'class', 'panel-heading' );
-		$panel->appendChild( $heading );
-
-		$title = $this->_dom->createElement( 'h3', 'Tree' );
-		$title->setAttribute( 'class', 'panel-title' );
-		$heading->appendChild( $title );
 
 		$content = $this->_dom->createElement( 'div' );
 		$content->setAttribute( 'class', 'panel-body' );
@@ -429,6 +439,8 @@ class HTMLPage
 	{
 		$div = $this->_dom->createElement( 'div' );
 		$div->setAttribute( 'class', 'markdown-content' );
+		$div->setAttribute( 'id', 'tmd-main-content' );
+		$div->setIdAttribute( 'id', true );
 		$content->appendChild( $div );
 
 		$curent_file_with_root    = $this->_tree->getSearch()->getCurrentFile( false );
@@ -507,6 +519,80 @@ class HTMLPage
 				'404',
 				'The file you requested does not exist or is not readable.'
 			);
+		}
+	}
+
+	protected function _addTOCSection( \DOMElement $toc )
+	{
+		$container = $this->_dom->createElement( 'div' );
+		$container->setAttribute( 'id', 'toc' );
+		$toc->appendChild( $container );
+
+		// setup xpath, this can be factored out
+		$xpath        = new \DOMXPath( $this->_dom );
+		$content_node = $this->_dom->getElementById( 'tmd-main-content' );
+
+		// grab all headings h2 and down from the document
+		$headings = array( 'h2', 'h3' );
+		foreach ( $headings as $k => $v )
+		{
+			$headings[ $k ] = "self::$v";
+		}
+		$query_headings = join( ' or ', $headings );
+		$query          = "//*[$query_headings]"; // looks like "//*[self::html:h2 or ...]"
+		$headings       = $xpath->query( $query, $content_node );
+
+		$toc_headline = $this->_dom->createElement( 'h2', 'Table of Contents' );
+		$container->appendChild( $toc_headline );
+
+		// setup the table of contents element
+		$toc_list = $this->_dom->createElement( 'ul' );
+		$toc_list->setAttribute( 'class', 'tmd-toc-1 nav' );
+		$container->appendChild( $toc_list );
+
+		// iterate through headings and build the table of contents
+		$current_level = 2;
+
+		/** @var array|\DOMNode[] $parents */
+		$parents = array( false, $toc_list );
+		$i       = 0;
+
+		/** @var \DOMElement $node */
+		foreach ( $headings as $node )
+		{
+			$level = (int)$node->tagName[1];
+			$name  = $node->textContent; // no support for formatting
+
+			while ( $level > $current_level )
+			{
+				if ( !$parents[ $current_level - 1 ]->lastChild )
+				{
+					$li = $this->_dom->createElement( 'li' );
+					$parents[ $current_level - 1 ]->appendChild( $li );
+				}
+
+				$sublist = $this->_dom->createElement( 'ul' );
+				$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
+				$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
+				$parents[ $current_level ] = $sublist;
+				$current_level++;
+			}
+
+			while ( $level < $current_level )
+			{
+				$current_level--;
+			}
+
+			$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
+
+			$line = $this->_dom->createElement( 'li' );
+			$link = $this->_dom->createElement( 'a', $name );
+			$line->appendChild( $link );
+			$parents[ $current_level - 1 ]->appendChild( $line );
+
+			// setup the anchors
+			$node->setAttribute( 'id', $anchor_id );
+			$link->setAttribute( 'href', '#' . $anchor_id );
 		}
 	}
 
