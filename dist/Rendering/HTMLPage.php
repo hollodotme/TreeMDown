@@ -323,6 +323,16 @@ class HTMLPage
 		$short_description->setAttribute( 'href', '?' );
 		$li->appendChild( $short_description );
 
+		if ( $this->_tree->getSearch()->isCurrentFileValid() )
+		{
+			$li = $this->_dom->createElement( 'li' );
+			$ul->appendChild( $li );
+
+			$raw_link = $this->_dom->createElement( 'a', 'raw markdown' );
+			$raw_link->setAttribute( 'href', $this->_tree->getSearch()->getCurrentFile( true ) );
+			$li->appendChild( $raw_link );
+		}
+
 		$form = $this->_dom->createElement( 'form' );
 		$form->setAttribute( 'class', 'navbar-form navbar-right' );
 		$form->setAttribute( 'role', 'search' );
@@ -533,10 +543,10 @@ class HTMLPage
 		$content_node = $this->_dom->getElementById( 'tmd-main-content' );
 
 		// grab all headings h2 and down from the document
-		$headings = array( 'h2', 'h3' );
+		$headings = array('h2', 'h3');
 		foreach ( $headings as $k => $v )
 		{
-			$headings[ $k ] = "self::$v";
+			$headings[$k] = "self::$v";
 		}
 		$query_headings = join( ' or ', $headings );
 		$query          = "//*[$query_headings]"; // looks like "//*[self::html:h2 or ...]"
@@ -554,7 +564,7 @@ class HTMLPage
 		$current_level = 2;
 
 		/** @var array|\DOMNode[] $parents */
-		$parents = array( false, $toc_list );
+		$parents = array(false, $toc_list);
 		$i       = 0;
 
 		/** @var \DOMElement $node */
@@ -565,16 +575,16 @@ class HTMLPage
 
 			while ( $level > $current_level )
 			{
-				if ( !$parents[ $current_level - 1 ]->lastChild )
+				if ( !$parents[$current_level - 1]->lastChild )
 				{
 					$li = $this->_dom->createElement( 'li' );
-					$parents[ $current_level - 1 ]->appendChild( $li );
+					$parents[$current_level - 1]->appendChild( $li );
 				}
 
 				$sublist = $this->_dom->createElement( 'ul' );
 				$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
-				$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
-				$parents[ $current_level ] = $sublist;
+				$parents[$current_level - 1]->lastChild->appendChild( $sublist );
+				$parents[$current_level] = $sublist;
 				$current_level++;
 			}
 
@@ -588,7 +598,7 @@ class HTMLPage
 			$line = $this->_dom->createElement( 'li' );
 			$link = $this->_dom->createElement( 'a', $name );
 			$line->appendChild( $link );
-			$parents[ $current_level - 1 ]->appendChild( $line );
+			$parents[$current_level - 1]->appendChild( $line );
 
 			// setup the anchors
 			$node->setAttribute( 'id', $anchor_id );
