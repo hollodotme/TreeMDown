@@ -2,7 +2,7 @@
 /**
  * Leaf class for HTML rendering
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering;

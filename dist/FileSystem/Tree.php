@@ -2,7 +2,7 @@
 /**
  * Class for builing a recursive tree of a filesystem
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\FileSystem;

@@ -2,7 +2,7 @@
 /**
  * Class for grep search in file system
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\FileSystem;

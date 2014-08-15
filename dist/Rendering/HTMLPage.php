@@ -2,7 +2,7 @@
 /**
  * Class for the HTML page
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering;
@@ -128,7 +128,14 @@ class HTMLPage
 		$head = $this->_dom->createElement( 'head' );
 
 		// Title
-		$title = $this->_dom->createElement( 'title', 'TreeMDown' );
+
+		$title = $this->_project_name;
+		if ( $this->_tree->getSearch()->isCurrentFileValid() )
+		{
+			$title = basename( $this->_tree->getSearch()->getCurrentFile() ) . ' - ' . $title;
+		}
+
+		$title = $this->_dom->createElement( 'title', $title );
 		$head->appendChild( $title );
 
 		$bootstrap_css   = file_get_contents( __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );

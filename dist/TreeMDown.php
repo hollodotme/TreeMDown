@@ -212,7 +212,7 @@ class TreeMDown
 		{
 			$headers['Content-type'] = 'text/plain; charset=UTF-8';
 
-			if ( $this->_search->isCurrentFileValid() )
+			if ( $this->_search->isCurrentFileValid() && is_file( $this->_search->getCurrentFile( false ) ) )
 			{
 				$output = file_get_contents( $this->_search->getCurrentFile( false ) );
 			}

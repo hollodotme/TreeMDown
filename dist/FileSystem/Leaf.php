@@ -2,7 +2,7 @@
 /**
  * Class for a tree leaf
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\FileSystem;

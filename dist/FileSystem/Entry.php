@@ -2,7 +2,7 @@
 /**
  * Base class for filesystem entries
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\FileSystem;
