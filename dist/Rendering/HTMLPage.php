@@ -72,7 +72,11 @@ class HTMLPage
 		$this->_dom = $dom_implementation->createDocument( '', 'html', $doc_type );
 		$this->_dom->documentElement->setAttribute( 'lang', 'en' );
 
-		$this->_toc = new \DOMDocument( '1.0', 'UTF-8' );
+		$dom_implementation = new \DOMImplementation();
+		$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+
+		$this->_toc = $dom_implementation->createDocument( '', 'html', $doc_type );
+		$this->_toc->documentElement->setAttribute( 'lang', 'en' );
 	}
 
 	/**
@@ -512,8 +516,31 @@ class HTMLPage
 
 				if ( !empty($markdown) )
 				{
-					$dom = new \DOMDocument( '1.0', 'UTF-8' );
+					$dom_implementation = new \DOMImplementation();
+					$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+					$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
+					libxml_use_internal_errors( true );
+
 					$dom->loadHTML( $markdown );
+
+					$errors = libxml_get_errors();
+
+					if ( !empty($errors) )
+					{
+						$messages = array();
+						/** @var \LibXMLError $error */
+						foreach ( $errors as $error )
+						{
+							$messages[] = $error->message;
+						}
+
+						$this->_addUserMessage(
+							$div,
+							'warning',
+							"This markdown file contains erroneous code",
+							join( ', ', $messages )
+						);
+					}
 
 					$div->appendChild( $this->_dom->importNode( $dom->documentElement, true ) );
 				}
