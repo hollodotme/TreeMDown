@@ -226,8 +226,6 @@ class HTMLPage
 		$container->setAttribute( 'role', 'main' );
 		$body->appendChild( $container );
 
-		$this->_addBreadCrumbSection( $container );
-
 		$row = $this->_dom->createElement( 'row' );
 		$row->setAttribute( 'class', 'row' );
 		$container->appendChild( $row );
@@ -342,6 +340,25 @@ class HTMLPage
 		$group->setAttribute( 'class', 'form-group' );
 		$form->appendChild( $group );
 
+		if ( $this->_tree->getSearch()->isCurrentFileValid() && is_file( $this->_tree->getSearch()->getCurrentFile( false ) ) )
+		{
+			// Button to show raw content
+			$query_string = http_build_query(
+				array(
+					'tmd_q' => $this->_tree->getSearch()->getSearchTerm(),
+					'tmd_f' => $this->_tree->getSearch()->getCurrentFile( true ),
+					'tmd_r' => 1,
+				)
+			);
+
+			$raw_link = $this->_dom->createElement( 'a', 'Show raw content' );
+			$raw_link->setAttribute( 'href', '?' . $query_string );
+			$raw_link->setAttribute( 'target', '_blank' );
+			$raw_link->setAttribute( 'class', 'btn btn-default' );
+			$raw_link->setAttribute( 'style', 'margin-right: 5px;' );
+			$group->appendChild( $raw_link );
+		}
+
 		$label = $this->_dom->createElement( 'label', 'Search' );
 		$label->setAttribute( 'for', 'main-search' );
 		$label->setAttribute( 'class', 'sr-only' );
@@ -410,54 +427,6 @@ class HTMLPage
 
 		$btn_span_text = $this->_dom->createTextNode( '' );
 		$glyph->appendChild( $btn_span_text );
-	}
-
-	/**
-	 * Adds the breadcrumb section
-	 */
-	public function _addBreadCrumbSection( \DOMElement $container )
-	{
-		if ( $this->_tree->getSearch()->isCurrentFileValid() )
-		{
-			$current_file = $this->_tree->getSearch()->getCurrentFile( true );
-
-			$row = $this->_dom->createElement( 'row' );
-			$row->setAttribute( 'class', 'row' );
-			$container->appendChild( $row );
-
-			$div = $this->_dom->createElement( 'div' );
-			$div->setAttribute( 'class', 'col-xs-12' );
-			$row->appendChild( $div );
-
-			$ul = $this->_dom->createElement( 'ul' );
-			$ul->setAttribute( 'class', 'breadcrumb' );
-			$div->appendChild( $ul );
-
-			$components = explode( DIRECTORY_SEPARATOR, $current_file );
-			foreach ( $components as $index => $component )
-			{
-				$li = $this->_dom->createElement( 'li', $component );
-
-				if ( $index == count( $components ) - 1 )
-					$li->setAttribute( 'class', 'active' );
-
-				$ul->appendChild( $li );
-			}
-
-			// Button to show raw content
-			$query_string = http_build_query(
-				array(
-					'tmd_q' => $this->_tree->getSearch()->getSearchTerm(),
-					'tmd_f' => $this->_tree->getSearch()->getCurrentFile( true ),
-					'tmd_r' => 1,
-				)
-			);
-
-			$raw_link     = $this->_dom->createElement( 'a', 'Show raw content' );
-			$raw_link->setAttribute( 'href', '?' . $query_string );
-			$raw_link->setAttribute( 'class', 'btn btn-default btn-sm pull-right' );
-			$div->appendChild( $raw_link );
-		}
 	}
 
 	/**

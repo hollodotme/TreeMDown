@@ -210,7 +210,7 @@ class TreeMDown
 		// Raw display of current file?
 		if ( isset($_GET['tmd_r']) && !empty($_GET['tmd_r']) )
 		{
-			$headers = array('Content-type', 'text/plain; charset=UTF-8');
+			$headers['Content-type'] = 'text/plain; charset=UTF-8';
 
 			if ( $this->_search->isCurrentFileValid() )
 			{
@@ -223,7 +223,9 @@ class TreeMDown
 		}
 		else
 		{
-			$headers = array('Content-type', 'text/html; charset=UTF-8');
+			$headers['Content-type'] = 'text/html; charset=UTF-8';
+
+			$this->_tree->buildTree();
 
 			$page = new HTMLPage( $this->_tree );
 			$page->setProjectName( $this->getProjectName() );
