@@ -11,7 +11,7 @@ To get the latest stable release, check the versions at [Packagist](http://packa
 ```json
 {
 	"require": {
-		"hollodotme/treemdown": "~1.0"
+		"hollodotme/treemdown": "1.0.0"
 	}
 }
 ```
