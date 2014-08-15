@@ -2,6 +2,8 @@
 
 ... is a single page PHP application for browsing markdown documents in a file structure and translating them to HTML.
 
+![treemdown](https://cloud.githubusercontent.com/assets/1557839/3932639/def59cf8-246d-11e4-906f-b715e61f58b8.png)
+
 ## Requirements / Dependencies
 
  * PHP >= 5.3
