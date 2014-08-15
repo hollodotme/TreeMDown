@@ -11,7 +11,7 @@ To get the latest stable release, check the versions at [Packagist](http://packa
 ```json
 {
 	"require": {
-		"hollodotme/TreeMDown": "~1.0"
+		"hollodotme/treemdown": "~1.0"
 	}
 }
 ```
@@ -28,7 +28,7 @@ To get the bleeding edge version add this to your `composer.json`:
 	],
 
 	"require": {
-		"hollodotme/TreeMDown": "dev-master"
+		"hollodotme/treemdown": "dev-master"
 	}
 }
 ```

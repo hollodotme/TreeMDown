@@ -1,5 +1,5 @@
 {
-	"name":        "hollodotme/TreeMDown",
+	"name":        "hollodotme/treemdown",
 	"description": "A PHP class for browsing markdown files with HTML rendering, syntax highlighting and search",
 	"keywords":    [
 		"markdown",
