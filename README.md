@@ -2,16 +2,24 @@
 
 ... is a single page PHP application for browsing markdown documents in a file structure and translating them to HTML.
 
+## Requirements / Dependencies
+
+ * PHP >= 5.3
+ * [Parsedown-Extra](https://github.com/erusev/parsedown-extra) via composer
+ * Webserver (Apache, nginx, etc.)
+
+**Note:** This application is currently tested on linux systems only.
+
 ## Installation
 
-### Composer
+### Via composer
 
 To get the latest stable release, check the versions at [Packagist](http://packagist.org) and add to your `composer.json`:
 
 ```json
 {
 	"require": {
-		"hollodotme/treemdown": "1.0.0"
+		"hollodotme/treemdown": "~1.0"
 	}
 }
 ```
