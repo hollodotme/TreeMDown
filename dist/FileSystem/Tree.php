@@ -46,7 +46,7 @@ class Tree extends Entry implements \Iterator, \Countable
 	 * @param Search $search   Search
 	 * @param string $filepath Filepath
 	 */
-	public function __construct( Search $search, $filepath )
+	public function __construct( Search $search, $filepath = '' )
 	{
 		parent::__construct( $search, $filepath );
 		$this->setLeafObjectClass( __NAMESPACE__ . '\\Leaf' );
