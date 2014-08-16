@@ -54,11 +54,11 @@
 
 
 #tmd-nav {
-    margin-top: 20px;
+    margin-top: 45px;
 }
 
 #tmd-main-content {
-    margin-top: 20px;
+    margin-top: 45px;
 }
 
 #toc {
@@ -129,4 +129,16 @@
     border-left: 1px solid #b92c28;
     text-decoration: none;
     background: none;
+}
+
+.tmd-h-toplink {
+    font-size: 11px;
+    display: none;
+    font-weight: normal;
+}
+
+h2:hover .tmd-h-toplink,
+h3:hover .tmd-h-toplink {
+    display: inline;
+    cursor: pointer;
 }

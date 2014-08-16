@@ -211,7 +211,7 @@ class HTMLPage
 		$treemdown = $this->_dom->createElement( 'style' );
 		$treemdown->setAttribute( 'type', 'text/css' );
 		$css_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/css/treemdown.css' )
+			file_get_contents( __DIR__ . '/../Assets/css/treemdown.min.css' )
 		);
 		$treemdown->appendChild( $css_text );
 		$head->appendChild( $treemdown );
@@ -230,6 +230,8 @@ class HTMLPage
 		$body->setAttribute( 'data-target', '#toc' );
 		$body->setAttribute( 'data-offset', '75' );
 
+		$this->_dom->documentElement->appendChild( $body );
+
 		$this->_addHeaderSection( $body );
 
 		$container = $this->_dom->createElement( 'div' );
@@ -237,7 +239,7 @@ class HTMLPage
 		$container->setAttribute( 'role', 'main' );
 		$body->appendChild( $container );
 
-		$row = $this->_dom->createElement( 'row' );
+		$row = $this->_dom->createElement( 'div' );
 		$row->setAttribute( 'class', 'row' );
 		$container->appendChild( $row );
 
@@ -257,8 +259,6 @@ class HTMLPage
 		$this->_addContentSection( $content );
 		$this->_addFooterSection( $container );
 		$this->_addScriptSection( $body );
-
-		$this->_dom->documentElement->appendChild( $body );
 
 		$this->_addTOCSection( $toc );
 	}
@@ -351,7 +351,10 @@ class HTMLPage
 		$group->setAttribute( 'class', 'form-group' );
 		$form->appendChild( $group );
 
-		if ( $this->_tree->getSearch()->isCurrentFileValid() && is_file( $this->_tree->getSearch()->getCurrentFile( false ) ) )
+		if ( $this->_tree->getSearch()->isCurrentFileValid() && is_file(
+				$this->_tree->getSearch()->getCurrentFile( false )
+			)
+		)
 		{
 			// Button to show raw content
 			$query_string = http_build_query(
@@ -575,6 +578,10 @@ class HTMLPage
 		}
 	}
 
+	/**
+	 * Adds the table-of-contents section
+	 * @param \DOMElement $toc
+	 */
 	protected function _addTOCSection( \DOMElement $toc )
 	{
 		$container = $this->_dom->createElement( 'div' );
@@ -586,66 +593,74 @@ class HTMLPage
 		$content_node = $this->_dom->getElementById( 'tmd-main-content' );
 
 		// grab all headings h2 and down from the document
-		$headings = array('h2', 'h3');
+		$headings = array( 'h2', 'h3' );
 		foreach ( $headings as $k => $v )
 		{
-			$headings[$k] = "self::$v";
+			$headings[ $k ] = "self::$v";
 		}
 		$query_headings = join( ' or ', $headings );
-		$query          = "//*[$query_headings]"; // looks like "//*[self::html:h2 or ...]"
+		$query          = "//*[$query_headings]";
 		$headings       = $xpath->query( $query, $content_node );
 
-		$toc_headline = $this->_dom->createElement( 'h2', 'Table of Contents' );
-		$container->appendChild( $toc_headline );
-
-		// setup the table of contents element
-		$toc_list = $this->_dom->createElement( 'ul' );
-		$toc_list->setAttribute( 'class', 'tmd-toc-1 nav' );
-		$container->appendChild( $toc_list );
-
-		// iterate through headings and build the table of contents
-		$current_level = 2;
-
-		/** @var array|\DOMNode[] $parents */
-		$parents = array(false, $toc_list);
-		$i       = 0;
-
-		/** @var \DOMElement $node */
-		foreach ( $headings as $node )
+		if ( $headings->length > 0 )
 		{
-			$level = (int)$node->tagName[1];
-			$name  = $node->textContent; // no support for formatting
+			$toc_headline = $this->_dom->createElement( 'h2', 'Table of Contents' );
+			$container->appendChild( $toc_headline );
 
-			while ( $level > $current_level )
+			// setup the table of contents element
+			$toc_list = $this->_dom->createElement( 'ul' );
+			$toc_list->setAttribute( 'class', 'tmd-toc-1 nav' );
+			$container->appendChild( $toc_list );
+
+			// iterate through headings and build the table of contents
+			$current_level = 2;
+
+			/** @var array|\DOMNode[] $parents */
+			$parents = array( false, $toc_list );
+			$i       = 0;
+
+			/** @var \DOMElement $node */
+			foreach ( $headings as $node )
 			{
-				if ( !$parents[$current_level - 1]->lastChild )
+				$level = (int)$node->tagName[1];
+				$name  = $node->textContent; // no support for formatting
+
+				while ( $level > $current_level )
 				{
-					$li = $this->_dom->createElement( 'li' );
-					$parents[$current_level - 1]->appendChild( $li );
+					if ( !$parents[ $current_level - 1 ]->lastChild )
+					{
+						$li = $this->_dom->createElement( 'li' );
+						$parents[ $current_level - 1 ]->appendChild( $li );
+					}
+
+					$sublist = $this->_dom->createElement( 'ul' );
+					$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
+					$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
+					$parents[ $current_level ] = $sublist;
+					$current_level++;
 				}
 
-				$sublist = $this->_dom->createElement( 'ul' );
-				$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
-				$parents[$current_level - 1]->lastChild->appendChild( $sublist );
-				$parents[$current_level] = $sublist;
-				$current_level++;
+				while ( $level < $current_level )
+				{
+					$current_level--;
+				}
+
+				$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
+
+				$line = $this->_dom->createElement( 'li' );
+				$link = $this->_dom->createElement( 'a', $name );
+				$line->appendChild( $link );
+				$parents[ $current_level - 1 ]->appendChild( $line );
+
+				// setup the anchors
+				$node->setAttribute( 'id', $anchor_id );
+				$link->setAttribute( 'href', '#' . $anchor_id );
+
+				$top_link = $this->_dom->createElement('a', 'Back to top');
+				$top_link->setAttribute('class', 'tmd-h-toplink pull-right');
+				$top_link->setAttribute('href', '#');
+				$node->appendChild($top_link);
 			}
-
-			while ( $level < $current_level )
-			{
-				$current_level--;
-			}
-
-			$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
-
-			$line = $this->_dom->createElement( 'li' );
-			$link = $this->_dom->createElement( 'a', $name );
-			$line->appendChild( $link );
-			$parents[$current_level - 1]->appendChild( $line );
-
-			// setup the anchors
-			$node->setAttribute( 'id', $anchor_id );
-			$link->setAttribute( 'href', '#' . $anchor_id );
 		}
 	}
 
@@ -679,17 +694,44 @@ class HTMLPage
 	/**
 	 * Adds the page footer to content section
 	 *
-	 * @param \DOMElement $body
+	 * @param \DOMElement $container
 	 */
-	protected function _addFooterSection( \DOMElement $body )
+	protected function _addFooterSection( \DOMElement $container )
 	{
 		$hr = $this->_dom->createElement( 'hr' );
 		$hr->setAttribute( 'class', 'clearfix' );
-		$body->appendChild( $hr );
+		$container->appendChild( $hr );
 
-		$div = $this->_dom->createElement( 'div', '&copy; ' . $this->_company . ' ' . date( 'Y' ) );
-		$div->setAttribute( 'class', 'page-footer text-right small text-muted' );
-		$body->appendChild( $div );
+		$row = $this->_dom->createElement( 'div' );
+		$row->setAttribute( 'class', 'tmd-footer row' );
+		$container->appendChild( $row );
+
+		$nav = $this->_dom->createElement( 'div' );
+		$nav->setAttribute( 'class', 'col-lg-3 col-md-4 col-sm-4 hidden-xs' );
+		$row->appendChild( $nav );
+
+		$content = $this->_dom->createElement( 'div' );
+		$content->setAttribute( 'class', 'col-lg-7 col-md-8 col-sm-8 col-xs-12' );
+		$row->appendChild( $content );
+
+		$toc = $this->_dom->createElement( 'div' );
+		$toc->setAttribute( 'class', 'col-lg-2 hidden-md' );
+		$row->appendChild( $toc );
+
+		$totop = $this->_dom->createElement('div');
+		$totop->setAttribute('class', 'small text-center');
+		$content->appendChild($totop);
+
+		$top_link = $this->_dom->createElement('a', 'Back to top');
+		$top_link->setAttribute('href', '#');
+		$totop->appendChild($top_link);
+
+		$span_company = $this->_dom->createElement(
+			'span',
+			sprintf( '%s &middot; &copy; %s %s', $this->_project_name, $this->_company, date( 'Y' ) )
+		);
+		$span_company->setAttribute( 'class', 'pull-right small text-muted' );
+		$toc->appendChild( $span_company );
 	}
 
 	/**
@@ -725,7 +767,7 @@ class HTMLPage
 		$treemdown = $this->_dom->createElement( 'script' );
 		$treemdown->setAttribute( 'type', 'text/javascript' );
 		$js_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/js/treemdown.js' )
+			file_get_contents( __DIR__ . '/../Assets/js/treemdown.min.js' )
 		);
 		$treemdown->appendChild( $js_text );
 		$body->appendChild( $treemdown );
