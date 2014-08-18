@@ -14,6 +14,14 @@ namespace hollodotme\TreeMDown\Rendering;
  */
 class HTMLPage
 {
+	const ASSET_CSS  = 'asset_css';
+	const ASSET_FONT = 'asset_font';
+	const ASSET_JS   = 'asset_js';
+	const ASSET_IMG  = 'asset_img';
+
+	const META_PROJECT_NAME = 'meta_project_name';
+	const META_ABSTRACT     = 'meta_abstract';
+	const META_COMPANY      = 'meta_company';
 
 	/**
 	 * Tree instance
@@ -58,6 +66,13 @@ class HTMLPage
 	protected $_toc = null;
 
 	/**
+	 * Page sections
+	 *
+	 * @var array|HTMLPage\AbstractSection[]
+	 */
+	protected $_sections = array();
+
+	/**
 	 * Constructor
 	 *
 	 * @param HTMLTree $tree
@@ -77,6 +92,53 @@ class HTMLPage
 
 		$this->_toc = $dom_implementation->createDocument( '', 'html', $doc_type );
 		$this->_toc->documentElement->setAttribute( 'lang', 'en' );
+	}
+
+	/**
+	 * Init all sections
+	 */
+	protected function _initSections()
+	{
+		// Init head section
+		$head = new HTMLPage\Head( $this->_dom, $this->_dom->documentElement, $this->_tree );
+
+		// Add font assets
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.eot' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.ttf' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.svg' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.woff' );
+
+		// Add css assets
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
+
+		// Add meta data
+		$head->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
+		$head->setMetaData( self::META_ABSTRACT, $this->_short_description );
+		$head->setMetaData( self::META_COMPANY, $this->_company );
+
+		// Add head section
+		$this->_sections[] = $head;
+
+		// Init body section
+		$body = new HTMLPage\Body( $this->_dom, $this->_dom->documentElement, $this->_tree );
+
+		// Add script assets
+		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js');
+		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js');
+		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js');
+		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.1.min.js');
+
+		// Add meta data
+		$body->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
+		$body->setMetaData( self::META_ABSTRACT, $this->_short_description );
+		$body->setMetaData( self::META_COMPANY, $this->_company );
+
+		// Add body section
+		$this->_sections[] = $body;
 	}
 
 	/**
@@ -116,675 +178,20 @@ class HTMLPage
 	 */
 	public function getOutput()
 	{
-		$this->_addHeadSection();
-		$this->_addBodySection();
+		$this->_initSections();
+
+		foreach ( $this->_sections as $section )
+		{
+			$section->prepare();
+		}
+
+		foreach ( $this->_sections as $section )
+		{
+			$section->addNodes();
+		}
 
 		$this->_dom->formatOutput = false;
 
 		return $this->_dom->saveHTML();
-	}
-
-	/**
-	 * Adds the HTML <head> section
-	 */
-	protected function _addHeadSection()
-	{
-		$head = $this->_dom->createElement( 'head' );
-
-		// Title
-
-		$title = $this->_project_name;
-		if ( $this->_tree->getSearch()->isCurrentFileValid() )
-		{
-			$title = basename( $this->_tree->getSearch()->getCurrentFile() ) . ' - ' . $title;
-		}
-
-		$title = $this->_dom->createElement( 'title', $title );
-		$head->appendChild( $title );
-
-		$bootstrap_css   = file_get_contents( __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
-		$glyphicons_eot  = base64_encode(
-			file_get_contents( __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.eot' )
-		);
-		$glyphicons_svg  = base64_encode(
-			file_get_contents( __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.svg' )
-		);
-		$glyphicons_ttf  = base64_encode(
-			file_get_contents( __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.ttf' )
-		);
-		$glyphicons_woff = base64_encode(
-			file_get_contents( __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.woff' )
-		);
-
-		$search = array(
-			'url(../fonts/glyphicons-halflings-regular.eot',
-			'url(../fonts/glyphicons-halflings-regular.woff',
-			'url(../fonts/glyphicons-halflings-regular.ttf',
-			'url(../fonts/glyphicons-halflings-regular.svg',
-		);
-
-		$replace = array(
-			"url(data:font/eot;base64,{$glyphicons_eot}",
-			"url(data:font/woff;base64,{$glyphicons_woff}",
-			"url(data:font/ttf;base64,{$glyphicons_ttf}",
-			"url(data:image/svg+xml;base64,{$glyphicons_svg}",
-		);
-
-		$bootstrap_css = str_replace( $search, $replace, $bootstrap_css );
-
-		// bootstrap css
-		$bootstrap = $this->_dom->createElement( 'style' );
-		$bootstrap->setAttribute( 'type', 'text/css' );
-		$css_text = $this->_dom->createCDATASection( $bootstrap_css );
-		$bootstrap->appendChild( $css_text );
-
-		$head->appendChild( $bootstrap );
-
-		// bootstrap-theme css
-		$bootstrap = $this->_dom->createElement( 'style' );
-		$bootstrap->setAttribute( 'type', 'text/css' );
-		$css_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' )
-		);
-		$bootstrap->appendChild( $css_text );
-
-		$head->appendChild( $bootstrap );
-
-		$github_markdown_css = $this->_dom->createElement( 'style' );
-		$github_markdown_css->setAttribute( 'type', 'text/css' );
-		$css_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/css/github-markdown.css' )
-		);
-		$github_markdown_css->appendChild( $css_text );
-		$head->appendChild( $github_markdown_css );
-
-		// highlight github css
-		$highlight_github = $this->_dom->createElement( 'style' );
-		$highlight_github->setAttribute( 'type', 'text/css' );
-		$css_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/css/highlightjs-github.min.css' )
-		);
-		$highlight_github->appendChild( $css_text );
-		$head->appendChild( $highlight_github );
-
-		// TreeMDown additions
-		$treemdown = $this->_dom->createElement( 'style' );
-		$treemdown->setAttribute( 'type', 'text/css' );
-		$css_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/css/treemdown.min.css' )
-		);
-		$treemdown->appendChild( $css_text );
-		$head->appendChild( $treemdown );
-
-		$this->_dom->documentElement->appendChild( $head );
-	}
-
-	/**
-	 * Adds the HTML <body> section
-	 */
-	protected function _addBodySection()
-	{
-		$body = $this->_dom->createElement( 'body' );
-		$body->setAttribute( 'role', 'document' );
-		$body->setAttribute( 'data-spy', 'scroll' );
-		$body->setAttribute( 'data-target', '#toc' );
-		$body->setAttribute( 'data-offset', '75' );
-
-		$this->_dom->documentElement->appendChild( $body );
-
-		$this->_addHeaderSection( $body );
-
-		$container = $this->_dom->createElement( 'div' );
-		$container->setAttribute( 'class', 'container-fluid' );
-		$container->setAttribute( 'role', 'main' );
-		$body->appendChild( $container );
-
-		$row = $this->_dom->createElement( 'div' );
-		$row->setAttribute( 'class', 'row' );
-		$container->appendChild( $row );
-
-		$nav = $this->_dom->createElement( 'div' );
-		$nav->setAttribute( 'class', 'col-lg-3 col-md-4 col-sm-4 hidden-xs' );
-		$row->appendChild( $nav );
-
-		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'col-lg-7 col-md-8 col-sm-8 col-xs-12' );
-		$row->appendChild( $content );
-
-		$toc = $this->_dom->createElement( 'div' );
-		$toc->setAttribute( 'class', 'col-lg-2 hidden-md' );
-		$row->appendChild( $toc );
-
-		$this->_addNavSection( $nav );
-		$this->_addContentSection( $content );
-		$this->_addFooterSection( $container );
-		$this->_addScriptSection( $body );
-
-		$this->_addTOCSection( $toc );
-	}
-
-	/**
-	 * Adds the page header section
-	 *
-	 * @param \DOMElement $body
-	 */
-	protected function _addHeaderSection( \DOMElement $body )
-	{
-		$nav = $this->_dom->createElement( 'div' );
-		$nav->setAttribute( 'class', 'navbar navbar-default navbar-fixed-top' );
-		$nav->setAttribute( 'role', 'navigation' );
-		$body->appendChild( $nav );
-
-		$container = $this->_dom->createElement( 'div' );
-		$container->setAttribute( 'class', 'container-fluid' );
-		$nav->appendChild( $container );
-
-		$navbar_header = $this->_dom->createElement( 'div' );
-		$navbar_header->setAttribute( 'class', 'navbar-header' );
-		$container->appendChild( $navbar_header );
-
-		$toggle_btn = $this->_dom->createElement( 'button' );
-		$toggle_btn->setAttribute( 'type', 'button' );
-		$toggle_btn->setAttribute( 'class', 'navbar-toggle' );
-		$toggle_btn->setAttribute( 'data-toggle', 'collapse' );
-		$toggle_btn->setAttribute( 'data-target', '#nb-collapse-1' );
-		$navbar_header->appendChild( $toggle_btn );
-
-		$btn_span = $this->_dom->createElement( 'span', 'Toggle navigation' );
-		$btn_span->setAttribute( 'class', 'sr-only' );
-		$toggle_btn->appendChild( $btn_span );
-
-		$btn_span = $this->_dom->createElement( 'span' );
-		$btn_span->setAttribute( 'class', 'icon-bar' );
-		$btn_span_text = $this->_dom->createTextNode( '' );
-		$btn_span->appendChild( $btn_span_text );
-		$toggle_btn->appendChild( $btn_span );
-
-		$btn_span = $this->_dom->createElement( 'span' );
-		$btn_span->setAttribute( 'class', 'icon-bar' );
-		$btn_span_text = $this->_dom->createTextNode( '' );
-		$btn_span->appendChild( $btn_span_text );
-		$toggle_btn->appendChild( $btn_span );
-
-		$btn_span = $this->_dom->createElement( 'span' );
-		$btn_span->setAttribute( 'class', 'icon-bar' );
-		$btn_span_text = $this->_dom->createTextNode( '' );
-		$btn_span->appendChild( $btn_span_text );
-		$toggle_btn->appendChild( $btn_span );
-
-		$brand = $this->_dom->createElement( 'a', $this->_project_name );
-		$brand->setAttribute( 'class', 'navbar-brand' );
-		$brand->setAttribute( 'href', '?' );
-		$navbar_header->appendChild( $brand );
-
-		// Collapse content
-		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'navbar-collapse collapse' );
-		$content->setAttribute( 'id', 'nb-collapse-1' );
-		$container->appendChild( $content );
-
-		$ul = $this->_dom->createElement( 'ul' );
-		$ul->setAttribute( 'class', 'nav navbar-nav' );
-		$content->appendChild( $ul );
-
-		$li = $this->_dom->createElement( 'li' );
-		$ul->appendChild( $li );
-
-		$short_description = $this->_dom->createElement( 'a', $this->_short_description );
-		$short_description->setAttribute( 'href', '?' );
-		$li->appendChild( $short_description );
-
-		$form = $this->_dom->createElement( 'form' );
-		$form->setAttribute( 'class', 'navbar-form navbar-right' );
-		$form->setAttribute( 'role', 'search' );
-		$form->setAttribute( 'method', 'get' );
-		$form->setAttribute( 'action', '' );
-		$content->appendChild( $form );
-
-		$current_file = $this->_dom->createElement( 'input' );
-		$current_file->setAttribute( 'type', 'hidden' );
-		$current_file->setAttribute( 'name', 'tmd_f' );
-		$current_file->setAttribute( 'value', $this->_tree->getSearch()->getCurrentFile( true ) );
-		$form->appendChild( $current_file );
-
-		$group = $this->_dom->createElement( 'div' );
-		$group->setAttribute( 'class', 'form-group' );
-		$form->appendChild( $group );
-
-		if ( $this->_tree->getSearch()->isCurrentFileValid() && is_file(
-				$this->_tree->getSearch()->getCurrentFile( false )
-			)
-		)
-		{
-			// Button to show raw content
-			$query_string = http_build_query(
-				array(
-					'tmd_q' => $this->_tree->getSearch()->getSearchTerm(),
-					'tmd_f' => $this->_tree->getSearch()->getCurrentFile( true ),
-					'tmd_r' => 1,
-				)
-			);
-
-			$raw_link = $this->_dom->createElement( 'a', 'Show raw content' );
-			$raw_link->setAttribute( 'href', '?' . $query_string );
-			$raw_link->setAttribute( 'target', '_blank' );
-			$raw_link->setAttribute( 'class', 'btn btn-default' );
-			$raw_link->setAttribute( 'style', 'margin-right: 5px;' );
-			$group->appendChild( $raw_link );
-		}
-
-		$label = $this->_dom->createElement( 'label', 'Search' );
-		$label->setAttribute( 'for', 'main-search' );
-		$label->setAttribute( 'class', 'sr-only' );
-		$group->appendChild( $label );
-
-		$input_group = $this->_dom->createElement( 'div' );
-		$input_group->setAttribute( 'class', 'input-group' );
-		$group->appendChild( $input_group );
-
-		// Search active?
-		if ( $this->_tree->getSearch()->isActive() )
-		{
-			$results = $this->_dom->createElement(
-				'span',
-				sprintf(
-					'%d matches in %d files',
-					$this->_tree->getOccurencesInSearch(),
-					$this->_tree->getSearch()->getPathsWithOccurencesCount()
-				)
-			);
-			$results->setAttribute( 'class', 'input-group-addon' );
-			$input_group->appendChild( $results );
-		}
-
-		$input = $this->_dom->createElement( 'input' );
-		$input->setAttribute( 'class', 'form-control' );
-		$input->setAttribute( 'type', 'text' );
-		$input->setAttribute( 'name', 'tmd_q' );
-		$input->setAttribute( 'size', '50' );
-		$input->setAttribute( 'id', 'main-search' );
-		$input->setAttribute( 'placeholder', 'search (with grep) ...' );
-		$input->setAttribute( 'value', $this->_tree->getSearch()->getSearchTerm() );
-		$input_group->appendChild( $input );
-
-		$btn_span = $this->_dom->createElement( 'span' );
-		$btn_span->setAttribute( 'class', 'input-group-btn' );
-		$input_group->appendChild( $btn_span );
-
-		// Search active?
-		if ( $this->_tree->getSearch()->isActive() )
-		{
-			// Reset button
-			$reset = $this->_dom->createElement( 'button' );
-			$reset->setAttribute( 'class', 'btn btn-danger' );
-			$reset->setAttribute( 'type', 'button' );
-			$reset->setAttribute( 'id', 'reset-main-search' );
-			$btn_span->appendChild( $reset );
-
-			$glyph = $this->_dom->createElement( 'span' );
-			$glyph->setAttribute( 'class', 'glyphicon glyphicon-remove' );
-			$reset->appendChild( $glyph );
-
-			$btn_span_text = $this->_dom->createTextNode( '' );
-			$glyph->appendChild( $btn_span_text );
-		}
-
-		// Submit button
-		$submit = $this->_dom->createElement( 'button' );
-		$submit->setAttribute( 'class', 'btn btn-default' );
-		$submit->setAttribute( 'type', 'submit' );
-		$btn_span->appendChild( $submit );
-
-		$glyph = $this->_dom->createElement( 'span' );
-		$glyph->setAttribute( 'class', 'glyphicon glyphicon-search' );
-		$submit->appendChild( $glyph );
-
-		$btn_span_text = $this->_dom->createTextNode( '' );
-		$glyph->appendChild( $btn_span_text );
-	}
-
-	/**
-	 * Adds the page navigation section
-	 *
-	 * @param \DOMElement $nav
-	 */
-	protected function _addNavSection( \DOMElement $nav )
-	{
-		$panel = $this->_dom->createElement( 'div' );
-		$panel->setAttribute( 'class', 'panel panel-default' );
-		$panel->setAttribute( 'id', 'tmd-nav' );
-		$nav->appendChild( $panel );
-
-		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'panel-body' );
-		$panel->appendChild( $content );
-
-		// Tree
-		$content->appendChild( $this->_dom->importNode( $this->_tree->getOutput(), true ) );
-	}
-
-	/**
-	 * Adds the page content section
-	 *
-	 * @param \DOMElement $content
-	 */
-	protected function _addContentSection( \DOMElement $content )
-	{
-		$div = $this->_dom->createElement( 'div' );
-		$div->setAttribute( 'class', 'markdown-content' );
-		$div->setAttribute( 'id', 'tmd-main-content' );
-		$div->setIdAttribute( 'id', true );
-		$content->appendChild( $div );
-
-		$curent_file_with_root    = $this->_tree->getSearch()->getCurrentFile( false );
-		$curent_file_without_root = $this->_tree->getSearch()->getCurrentFile( true );
-
-		if ( empty($curent_file_without_root) )
-		{
-			if ( $this->_tree->getSearch()->isCurrentFileValid() )
-			{
-				$this->_addUserMessage(
-					$div,
-					'info',
-					"No file selected",
-					"Browse the file tree on the left and click a file."
-				);
-			}
-			else
-			{
-				$this->_addUserMessage(
-					$div,
-					'danger',
-					"Invalid request",
-					"The file you requested is not accessable by this application."
-				);
-			}
-		}
-		elseif ( file_exists( $curent_file_with_root ) && is_dir( $curent_file_with_root ) )
-		{
-			$this->_addUserMessage(
-				$div,
-				'warning',
-				"Directory selected",
-				"Cannot display the content of directories. Browse the file tree on the left and click a file."
-			);
-		}
-		elseif ( file_exists( $curent_file_with_root ) && is_readable( $curent_file_with_root ) )
-		{
-			try
-			{
-				// Parsedown execution
-				$parser   = new \ParsedownExtra();
-				$markdown = $parser->text( file_get_contents( $curent_file_with_root ) );
-
-				if ( !empty($markdown) )
-				{
-					$dom_implementation = new \DOMImplementation();
-					$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
-					$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
-					libxml_use_internal_errors( true );
-
-					$dom->loadHTML( $markdown );
-
-					$errors = libxml_get_errors();
-
-					if ( !empty($errors) )
-					{
-						$messages = array();
-						/** @var \LibXMLError $error */
-						foreach ( $errors as $error )
-						{
-							$messages[] = $error->message;
-						}
-
-						$this->_addUserMessage(
-							$div,
-							'warning',
-							"This markdown file contains erroneous code",
-							join( ', ', $messages )
-						);
-					}
-
-					$div->appendChild( $this->_dom->importNode( $dom->documentElement, true ) );
-				}
-				else
-				{
-					$this->_addUserMessage(
-						$div,
-						'warning',
-						":-( You're not done yet!",
-						"This file has no content at all."
-					);
-				}
-			}
-			catch ( \Exception $e )
-			{
-				$this->_addUserMessage(
-					$div,
-					'danger',
-					'Oops! An error occured while parsing markdown file',
-					$curent_file_without_root . ': ' . $e->getMessage()
-				);
-			}
-		}
-		else
-		{
-			$this->_addUserMessage(
-				$div,
-				'danger',
-				'404',
-				'The file you requested does not exist or is not readable.'
-			);
-		}
-	}
-
-	/**
-	 * Adds the table-of-contents section
-	 * @param \DOMElement $toc
-	 */
-	protected function _addTOCSection( \DOMElement $toc )
-	{
-		$container = $this->_dom->createElement( 'div' );
-		$container->setAttribute( 'id', 'toc' );
-		$toc->appendChild( $container );
-
-		// setup xpath, this can be factored out
-		$xpath        = new \DOMXPath( $this->_dom );
-		$content_node = $this->_dom->getElementById( 'tmd-main-content' );
-
-		// grab all headings h2 and down from the document
-		$headings = array( 'h2', 'h3' );
-		foreach ( $headings as $k => $v )
-		{
-			$headings[ $k ] = "self::$v";
-		}
-		$query_headings = join( ' or ', $headings );
-		$query          = "//*[$query_headings]";
-		$headings       = $xpath->query( $query, $content_node );
-
-		if ( $headings->length > 0 )
-		{
-			$toc_headline = $this->_dom->createElement( 'h2', 'Table of Contents' );
-			$container->appendChild( $toc_headline );
-
-			// setup the table of contents element
-			$toc_list = $this->_dom->createElement( 'ul' );
-			$toc_list->setAttribute( 'class', 'tmd-toc-1 nav' );
-			$container->appendChild( $toc_list );
-
-			// iterate through headings and build the table of contents
-			$current_level = 2;
-
-			/** @var array|\DOMNode[] $parents */
-			$parents = array( false, $toc_list );
-			$i       = 0;
-
-			/** @var \DOMElement $node */
-			foreach ( $headings as $node )
-			{
-				$level = (int)$node->tagName[1];
-				$name  = $node->textContent; // no support for formatting
-
-				while ( $level > $current_level )
-				{
-					if ( !$parents[ $current_level - 1 ]->lastChild )
-					{
-						$li = $this->_dom->createElement( 'li' );
-						$parents[ $current_level - 1 ]->appendChild( $li );
-					}
-
-					$sublist = $this->_dom->createElement( 'ul' );
-					$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
-					$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
-					$parents[ $current_level ] = $sublist;
-					$current_level++;
-				}
-
-				while ( $level < $current_level )
-				{
-					$current_level--;
-				}
-
-				$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
-
-				$line = $this->_dom->createElement( 'li' );
-				$link = $this->_dom->createElement( 'a', $name );
-				$line->appendChild( $link );
-				$parents[ $current_level - 1 ]->appendChild( $line );
-
-				// setup the anchors
-				$node->setAttribute( 'id', $anchor_id );
-				$link->setAttribute( 'href', '#' . $anchor_id );
-
-				$top_link = $this->_dom->createElement('a', 'Back to top');
-				$top_link->setAttribute('class', 'tmd-h-toplink pull-right');
-				$top_link->setAttribute('href', '#');
-				$node->appendChild($top_link);
-			}
-		}
-	}
-
-	/**
-	 * Adds a user message to the content section
-	 *
-	 * @param \DOMElement $elem
-	 * @param string      $severity
-	 * @param string      $header
-	 * @param string      $message
-	 */
-	protected function _addUserMessage( \DOMElement $elem, $severity, $header, $message )
-	{
-		$panel = $this->_dom->createElement( 'div' );
-		$panel->setAttribute( 'class', 'panel panel-' . $severity );
-		$elem->appendChild( $panel );
-
-		$heading = $this->_dom->createElement( 'div' );
-		$heading->setAttribute( 'class', 'panel-heading' );
-		$panel->appendChild( $heading );
-
-		$title = $this->_dom->createElement( 'h3', $header );
-		$title->setAttribute( 'class', 'panel-title' );
-		$heading->appendChild( $title );
-
-		$content = $this->_dom->createElement( 'div', $message );
-		$content->setAttribute( 'class', 'panel-body' );
-		$panel->appendChild( $content );
-	}
-
-	/**
-	 * Adds the page footer to content section
-	 *
-	 * @param \DOMElement $container
-	 */
-	protected function _addFooterSection( \DOMElement $container )
-	{
-		$hr = $this->_dom->createElement( 'hr' );
-		$hr->setAttribute( 'class', 'clearfix' );
-		$container->appendChild( $hr );
-
-		$row = $this->_dom->createElement( 'div' );
-		$row->setAttribute( 'class', 'tmd-footer row' );
-		$container->appendChild( $row );
-
-		$nav = $this->_dom->createElement( 'div' );
-		$nav->setAttribute( 'class', 'col-lg-3 col-md-4 col-sm-4 hidden-xs' );
-		$row->appendChild( $nav );
-
-		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'col-lg-7 col-md-8 col-sm-8 col-xs-12' );
-		$row->appendChild( $content );
-
-		$toc = $this->_dom->createElement( 'div' );
-		$toc->setAttribute( 'class', 'col-lg-2 hidden-md' );
-		$row->appendChild( $toc );
-
-		$totop = $this->_dom->createElement('div');
-		$totop->setAttribute('class', 'small text-center');
-		$content->appendChild($totop);
-
-		$top_link = $this->_dom->createElement('a', 'Back to top');
-		$top_link->setAttribute('href', '#');
-		$totop->appendChild($top_link);
-
-		$span_company = $this->_dom->createElement(
-			'span',
-			sprintf( '%s &middot; &copy; %s %s', $this->_project_name, $this->_company, date( 'Y' ) )
-		);
-		$span_company->setAttribute( 'class', 'pull-right small text-muted' );
-		$toc->appendChild( $span_company );
-	}
-
-	/**
-	 * Adds the scripts to the body section
-	 *
-	 * @param \DOMElement $body
-	 */
-	protected function _addScriptSection( \DOMElement $body )
-	{
-		// jquery.js
-		$jquery = $this->_dom->createElement( 'script' );
-		$jquery->setAttribute( 'type', 'text/javascript' );
-
-		$jq_content = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' )
-		);
-		$jquery->appendChild( $jq_content );
-
-		$body->appendChild( $jquery );
-
-		// bootstrap.js
-		$bootstrap_js = $this->_dom->createElement( 'script' );
-		$bootstrap_js->setAttribute( 'type', 'text/javascript' );
-
-		$js_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js' )
-		);
-		$bootstrap_js->appendChild( $js_text );
-
-		$body->appendChild( $bootstrap_js );
-
-		// TreeMDown additionals
-		$treemdown = $this->_dom->createElement( 'script' );
-		$treemdown->setAttribute( 'type', 'text/javascript' );
-		$js_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/js/treemdown.min.js' )
-		);
-		$treemdown->appendChild( $js_text );
-		$body->appendChild( $treemdown );
-
-		// highlight.js
-		$highlightjs = $this->_dom->createElement( 'script' );
-		$highlightjs->setAttribute( 'type', 'text/javascript' );
-
-		$js_text = $this->_dom->createCDATASection(
-			file_get_contents( __DIR__ . '/../Assets/js/highlight-8.1.min.js' )
-		);
-		$highlightjs->appendChild( $js_text );
-
-		$body->appendChild( $highlightjs );
-
-		$hljs_init = $this->_dom->createElement( 'script', 'hljs.initHighlightingOnLoad();' );
-		$hljs_init->setAttribute( 'type', 'text/javascript' );
-		$body->appendChild( $hljs_init );
 	}
 }
