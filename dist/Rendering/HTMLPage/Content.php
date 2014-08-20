@@ -61,19 +61,11 @@ class Content extends AbstractSection
 	}
 
 	/**
-	 * Prepare the section
-	 */
-	public function prepare()
-	{
-		// TODO: Implement prepare() method.
-	}
-
-	/**
 	 * Add the section nodes
 	 */
 	public function addNodes()
 	{
-		$div = $this->_dom->createElement( 'div' );
+		$div = $this->getDom()->createElement( 'div' );
 		$div->setAttribute( 'class', 'markdown-content' );
 		$div->setAttribute( 'id', 'tmd-main-content' );
 

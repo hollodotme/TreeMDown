@@ -67,7 +67,7 @@ class Body extends AbstractSection
 		}
 
 		// Add header nav section
-		$header = new Header( $this->_dom, $body, $this->_tree );
+		$header = new Header( $body, $this->_tree );
 		$header->setMetaDataArray( $this->_meta_data );
 		$header->prepare();
 		$header->addNodes();
@@ -75,20 +75,20 @@ class Body extends AbstractSection
 		$section = $this->getDom()->createElement( 'section' );
 		$body->appendChild( $section );
 
-		$container = $this->_dom->createElement( 'div' );
+		$container = $this->getDom()->createElement( 'div' );
 		$container->setAttribute( 'class', 'container-fluid' );
 		$container->setAttribute( 'role', 'main' );
 		$section->appendChild( $container );
 
-		$row = $this->_dom->createElement( 'div' );
+		$row = $this->getDom()->createElement( 'div' );
 		$row->setAttribute( 'class', 'row' );
 		$container->appendChild( $row );
 
-		$sidebar_column = $this->_dom->createElement( 'div' );
+		$sidebar_column = $this->getDom()->createElement( 'div' );
 		$sidebar_column->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs' );
 		$row->appendChild( $sidebar_column );
 
-		$content_column = $this->_dom->createElement( 'div' );
+		$content_column = $this->getDom()->createElement( 'div' );
 		$row->appendChild( $content_column );
 
 		// TOC exists?
@@ -97,11 +97,11 @@ class Body extends AbstractSection
 			$content_column->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
 
 			// Add TOC column
-			$toc_column = $this->_dom->createElement( 'div' );
+			$toc_column = $this->getDom()->createElement( 'div' );
 			$toc_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
 			$row->appendChild( $toc_column );
 
-			$toc = new TOC( $this->_dom, $toc_column, $this->_tree );
+			$toc = new TOC( $toc_column, $this->_tree );
 			$toc->setMetaDataArray( $this->_meta_data );
 			$toc->setToc( $this->_toc );
 
@@ -114,13 +114,13 @@ class Body extends AbstractSection
 		}
 
 		// Add sidebar section
-		$sidebar = new Sidebar( $this->_dom, $sidebar_column, $this->_tree );
+		$sidebar = new Sidebar( $sidebar_column, $this->_tree );
 		$sidebar->setMetaDataArray( $this->_meta_data );
 		$sidebar->prepare();
 		$sidebar->addNodes();
 
 		// Add content section
-		$content = new Content( $this->_dom, $content_column, $this->_tree );
+		$content = new Content( $content_column, $this->_tree );
 		$content->setMetaDataArray( $this->_meta_data );
 		$content->setUserMessages( $this->_user_messages );
 		$content->setParsedMarkdown( $this->_parsed_markdown );
@@ -128,14 +128,14 @@ class Body extends AbstractSection
 		$content->addNodes();
 
 		// Add footer section
-		$footer = new Footer( $this->_dom, $body, $this->_tree );
+		$footer = new Footer( $body, $this->_tree );
 		$footer->setMetaDataArray( $this->_meta_data );
 		$footer->setTocExists( !is_null( $this->_toc ) );
 		$footer->prepare();
 		$footer->addNodes();
 
 		// Add scripts section
-		$scripts = new Scripts( $this->_dom, $body, $this->_tree );
+		$scripts = new Scripts( $body, $this->_tree );
 		$scripts->setMetaDataArray( $this->_meta_data );
 		$scripts->setAssetsArray( $this->_assets );
 		$scripts->prepare();
@@ -251,7 +251,6 @@ class Body extends AbstractSection
 	{
 		if ( !is_null( $this->_parsed_markdown ) )
 		{
-
 			// setup xpath, this can be factored out
 			$xpath = new \DOMXPath( $this->_parsed_markdown->ownerDocument );
 

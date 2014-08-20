@@ -14,14 +14,14 @@ namespace hollodotme\TreeMDown\Rendering;
  */
 class HTMLPage
 {
-	const ASSET_CSS  = 'asset_css';
+	const ASSET_CSS = 'asset_css';
 	const ASSET_FONT = 'asset_font';
-	const ASSET_JS   = 'asset_js';
-	const ASSET_IMG  = 'asset_img';
+	const ASSET_JS = 'asset_js';
+	const ASSET_IMG = 'asset_img';
 
 	const META_PROJECT_NAME = 'meta_project_name';
-	const META_ABSTRACT     = 'meta_abstract';
-	const META_COMPANY      = 'meta_company';
+	const META_ABSTRACT = 'meta_abstract';
+	const META_COMPANY = 'meta_company';
 
 	/**
 	 * Tree instance
@@ -59,20 +59,6 @@ class HTMLPage
 	protected $_company = 'Company';
 
 	/**
-	 * Table of contents
-	 *
-	 * @var null|\DOMDocument
-	 */
-	protected $_toc = null;
-
-	/**
-	 * Page sections
-	 *
-	 * @var array|HTMLPage\AbstractSection[]
-	 */
-	protected $_sections = array();
-
-	/**
 	 * Constructor
 	 *
 	 * @param HTMLTree $tree
@@ -86,59 +72,6 @@ class HTMLPage
 
 		$this->_dom = $dom_implementation->createDocument( '', 'html', $doc_type );
 		$this->_dom->documentElement->setAttribute( 'lang', 'en' );
-
-		$dom_implementation = new \DOMImplementation();
-		$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
-
-		$this->_toc = $dom_implementation->createDocument( '', 'html', $doc_type );
-		$this->_toc->documentElement->setAttribute( 'lang', 'en' );
-	}
-
-	/**
-	 * Init all sections
-	 */
-	protected function _initSections()
-	{
-		// Init head section
-		$head = new HTMLPage\Head( $this->_dom, $this->_dom->documentElement, $this->_tree );
-
-		// Add font assets
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.eot' );
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.ttf' );
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.svg' );
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.woff' );
-
-		// Add css assets
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.css' );
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
-
-		// Add meta data
-		$head->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
-		$head->setMetaData( self::META_ABSTRACT, $this->_short_description );
-		$head->setMetaData( self::META_COMPANY, $this->_company );
-
-		// Add head section
-		$this->_sections[] = $head;
-
-		// Init body section
-		$body = new HTMLPage\Body( $this->_dom, $this->_dom->documentElement, $this->_tree );
-
-		// Add script assets
-		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js');
-		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js');
-		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js');
-		$body->addAsset(self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.1.min.js');
-
-		// Add meta data
-		$body->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
-		$body->setMetaData( self::META_ABSTRACT, $this->_short_description );
-		$body->setMetaData( self::META_COMPANY, $this->_company );
-
-		// Add body section
-		$this->_sections[] = $body;
 	}
 
 	/**
@@ -178,17 +111,48 @@ class HTMLPage
 	 */
 	public function getOutput()
 	{
-		$this->_initSections();
+		// Init head section
+		$head = new HTMLPage\Head( $this->_dom->documentElement, $this->_tree );
 
-		foreach ( $this->_sections as $section )
-		{
-			$section->prepare();
-		}
+		// Add font assets
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.eot' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.ttf' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.svg' );
+		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.woff' );
 
-		foreach ( $this->_sections as $section )
-		{
-			$section->addNodes();
-		}
+		// Add css assets
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
+
+		// Add meta data
+		$head->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
+		$head->setMetaData( self::META_ABSTRACT, $this->_short_description );
+		$head->setMetaData( self::META_COMPANY, $this->_company );
+
+		// Init body section
+		$body = new HTMLPage\Body( $this->_dom->documentElement, $this->_tree );
+
+		// Add script assets
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.1.min.js' );
+
+		// Add meta data
+		$body->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
+		$body->setMetaData( self::META_ABSTRACT, $this->_short_description );
+		$body->setMetaData( self::META_COMPANY, $this->_company );
+
+		// Prepare sections
+		$head->prepare();
+		$body->prepare();
+
+		// Add section nodes
+		$head->addNodes();
+		$body->addNodes();
 
 		$this->_dom->formatOutput = false;
 

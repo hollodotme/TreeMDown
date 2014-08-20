@@ -16,7 +16,6 @@ use hollodotme\TreeMDown\Rendering\HTMLTree;
  */
 abstract class AbstractSection
 {
-
 	/**
 	 * Assets
 	 *
@@ -30,13 +29,6 @@ abstract class AbstractSection
 	 * @var array
 	 */
 	protected $_meta_data = array();
-
-	/**
-	 * The DOMDocument
-	 *
-	 * @var \DOMDocument|null
-	 */
-	protected $_dom = null;
 
 	/**
 	 * The conatiner DOMElement
@@ -55,13 +47,11 @@ abstract class AbstractSection
 	/**
 	 * Constructor
 	 *
-	 * @param \DOMDocument $dom
 	 * @param \DOMElement  $container
 	 * @param HTMLTree     $tree
 	 */
-	public function __construct( \DOMDocument $dom, \DOMElement $container, HTMLTree $tree )
+	public function __construct( \DOMElement $container, HTMLTree $tree )
 	{
-		$this->_dom       = $dom;
 		$this->_container = $container;
 		$this->_tree      = $tree;
 	}
@@ -73,7 +63,7 @@ abstract class AbstractSection
 	 */
 	public function getDom()
 	{
-		return $this->_dom;
+		return $this->_container->ownerDocument;
 	}
 
 	/**
@@ -190,7 +180,7 @@ abstract class AbstractSection
 	 */
 	public function getElementWithAttributes( $name, array $attributes, $content = null )
 	{
-		$elem = $this->_dom->createElement( $name, $content );
+		$elem = $this->getDom()->createElement( $name, $content );
 
 		foreach ( $attributes as $attr_name => $attr_value )
 		{
@@ -203,7 +193,10 @@ abstract class AbstractSection
 	/**
 	 * Prepare the section
 	 */
-	abstract public function prepare();
+	public function prepare()
+	{
+		// Override in extending classes
+	}
 
 	/**
 	 * Add the section nodes

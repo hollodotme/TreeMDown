@@ -36,14 +36,6 @@ class TOC extends AbstractSection
 	}
 
 	/**
-	 * Prepare the section
-	 */
-	public function prepare()
-	{
-		// TODO: Implement prepare() method.
-	}
-
-	/**
 	 * Add the section nodes
 	 */
 	public function addNodes()
