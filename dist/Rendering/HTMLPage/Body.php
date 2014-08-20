@@ -43,183 +43,11 @@ class Body extends AbstractSection
 	 */
 	public function prepare()
 	{
-		$curent_file_with_root    = $this->getTree()->getSearch()->getCurrentFile( false );
-		$curent_file_without_root = $this->getTree()->getSearch()->getCurrentFile( true );
-
-		// Prepare the parsedown content
-		if ( empty($curent_file_without_root) )
-		{
-			if ( $this->_tree->getSearch()->isCurrentFileValid() )
-			{
-				$this->_user_messages['info'][] = array(
-					'title'   => 'No file selected',
-					'message' => 'Browse the file tree on the left and click a file.',
-				);
-			}
-			else
-			{
-				$this->_user_messages['danger'][] = array(
-					'title'   => 'Invalid request',
-					'message' => 'The file you requested is not accessable by this application.',
-				);
-			}
-		}
-		elseif ( file_exists( $curent_file_with_root ) && is_dir( $curent_file_with_root ) )
-		{
-			$this->_user_messages['warning'][] = array(
-				'title'   => 'Directory selected',
-				'message' => 'Cannot display the content of directories.
-							  Browse the file tree on the left and click a file.',
-			);
-		}
-		elseif ( file_exists( $curent_file_with_root ) && is_readable( $curent_file_with_root ) )
-		{
-			try
-			{
-				// Parsedown execution
-				$parser   = new \ParsedownExtra();
-				$markdown = $parser->text( file_get_contents( $curent_file_with_root ) );
-
-				if ( !empty($markdown) )
-				{
-					$dom_implementation = new \DOMImplementation();
-					$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
-					$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
-					libxml_use_internal_errors( true );
-
-					$dom->loadHTML( $markdown );
-
-					$errors = libxml_get_errors();
-
-					if ( !empty($errors) )
-					{
-						$messages = array();
-
-						/** @var \LibXMLError $error */
-						foreach ( $errors as $error )
-						{
-							$messages[] = $error->message;
-						}
-
-						$this->_user_messages['warning'][] = array(
-							'title'   => 'This markdown file contains erroneous code',
-							'message' => join( ', ', $messages ),
-						);
-					}
-
-					$this->_parsed_markdown = $dom->documentElement;
-				}
-				else
-				{
-					$this->_user_messages['warning'][] = array(
-						'title'   => ":-( You're not done yet!",
-						'message' => 'This file has no content at all.',
-					);
-				}
-			}
-			catch ( \Exception $e )
-			{
-				$this->_parsed_markdown           = null;
-				$this->_user_messages['danger'][] = array(
-					'title'   => "Oops! An error occured while parsing markdown file",
-					'message' => $curent_file_without_root . ': ' . $e->getMessage(),
-				);
-			}
-		}
-		else
-		{
-			$this->_user_messages['danger'][] = array(
-				'title'   => '404',
-				'message' => 'The file you requested does not exist or is not readable.',
-			);
-		}
+		// Prepare parsed markdown
+		$this->_prepareParsedMarkdown();
 
 		// Prepare the TOC
-		if ( !is_null( $this->_parsed_markdown ) )
-		{
-			// setup xpath, this can be factored out
-			$xpath = new \DOMXPath( $this->_parsed_markdown->ownerDocument );
-
-			// grab all headings h2 and down from the document
-			$headings = array( 'h2', 'h3' );
-			foreach ( $headings as $k => $v )
-			{
-				$headings[ $k ] = "self::$v";
-			}
-			$query_headings = join( ' or ', $headings );
-			$query          = "//*[$query_headings]";
-			$headings       = $xpath->query( $query );
-
-			if ( $headings->length > 0 )
-			{
-				$dom_implementation = new \DOMImplementation();
-				$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
-				$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
-				$container          = $dom->documentElement;
-
-				$toc_headline = $dom->createElement( 'h2', 'Table of Contents' );
-				$container->appendChild( $toc_headline );
-
-				// setup the table of contents element
-				$toc_list = $dom->createElement( 'ul' );
-				$toc_list->setAttribute( 'class', 'nav tmd-toc-1' );
-				$container->appendChild( $toc_list );
-
-				// iterate through headings and build the table of contents
-				$current_level = 2;
-
-				/** @var array|\DOMNode[] $parents */
-				$parents = array( false, $toc_list );
-				$i       = 0;
-
-				/** @var \DOMElement $headline */
-				foreach ( $headings as $headline )
-				{
-					$level = (int)$headline->tagName[1];
-					$name  = $headline->textContent; // no support for formatting
-
-					while ( $level > $current_level )
-					{
-						if ( !$parents[ $current_level - 1 ]->lastChild )
-						{
-							$li = $dom->createElement( 'li' );
-							$parents[ $current_level - 1 ]->appendChild( $li );
-						}
-
-						$sublist = $dom->createElement( 'ul' );
-						$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
-						$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
-						$parents[ $current_level ] = $sublist;
-						$current_level++;
-					}
-
-					while ( $level < $current_level )
-					{
-						$current_level--;
-					}
-
-					$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
-
-					$line = $dom->createElement( 'li' );
-					$link = $dom->createElement( 'a', $name );
-					$line->appendChild( $link );
-					$parents[ $current_level - 1 ]->appendChild( $line );
-
-					// setup the anchors
-					$headline->setAttribute( 'id', $anchor_id );
-					$link->setAttribute( 'href', '#' . $anchor_id );
-
-					$top_link = $headline->ownerDocument->createElement( 'a', 'Back to top' );
-					$top_link->setAttribute( 'class', 'tmd-h-toplink pull-right' );
-					$top_link->setAttribute( 'href', '#' );
-
-					$headline->appendChild( $top_link );
-				}
-
-				// Set the TOC
-				$this->_toc = $container;
-			}
-		}
+		$this->_prepareTOC();
 	}
 
 	/**
@@ -227,7 +55,7 @@ class Body extends AbstractSection
 	 */
 	public function addNodes()
 	{
-		$body = $this->getElementWithAttributes( 'body', array( 'role' => 'document' ) );
+		$body = $this->getElementWithAttributes( 'body', array('role' => 'document') );
 
 		if ( !is_null( $this->_toc ) )
 		{
@@ -347,7 +175,7 @@ class Body extends AbstractSection
 	{
 		if ( !is_null( $this->_toc ) )
 		{
-			$container = $this->getElementWithAttributes( 'div', array( 'id' => 'toc' ) );
+			$container = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
 			$container->appendChild( $this->getDom()->importNode( $this->_toc, true ) );
 			$toc->appendChild( $container );
 		}
@@ -390,12 +218,12 @@ class Body extends AbstractSection
 		$container = $this->getDom()->createElement( 'footer' );
 		$body->appendChild( $container );
 
-		$container->appendChild( $this->getElementWithAttributes( 'hr', array( 'class' => 'clearfix' ) ) );
+		$container->appendChild( $this->getElementWithAttributes( 'hr', array('class' => 'clearfix') ) );
 
-		$row = $this->getElementWithAttributes( 'div', array( 'class' => 'tmd-footer row' ) );
+		$row = $this->getElementWithAttributes( 'div', array('class' => 'tmd-footer row') );
 		$container->appendChild( $row );
 
-		$nav = $this->getElementWithAttributes( 'div', array( 'class' => 'col-lg-3 col-md-3 col-sm-4 hidden-xs' ) );
+		$nav = $this->getElementWithAttributes( 'div', array('class' => 'col-lg-3 col-md-3 col-sm-4 hidden-xs') );
 		$nav->appendChild( $this->getDom()->createTextNode( '' ) );
 		$row->appendChild( $nav );
 
@@ -404,7 +232,7 @@ class Body extends AbstractSection
 
 		$span_company = $this->getElementWithAttributes(
 			'span',
-			array( 'class' => 'pull-right small text-muted' ),
+			array('class' => 'pull-right small text-muted'),
 			sprintf(
 				'%s &middot; &copy; %s %s',
 				$this->getMetaData( HTMLPage::META_PROJECT_NAME ),
@@ -428,8 +256,8 @@ class Body extends AbstractSection
 			$content->appendChild( $span_company );
 		}
 
-		$totop = $this->getElementWithAttributes( 'div', array( 'class' => 'small text-center' ) );
-		$totop->appendChild( $this->getElementWithAttributes( 'a', array( 'href' => '#' ), 'Back to top' ) );
+		$totop = $this->getElementWithAttributes( 'div', array('class' => 'small text-center') );
+		$totop->appendChild( $this->getElementWithAttributes( 'a', array('href' => '#'), 'Back to top' ) );
 		$content->appendChild( $totop );
 	}
 
@@ -443,16 +271,212 @@ class Body extends AbstractSection
 		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $js_file )
 		{
 			$file_content = file_get_contents( $js_file );
-			$elem         = $this->getElementWithAttributes( 'script', array( 'type' => 'text/javascript' ) );
+			$elem         = $this->getElementWithAttributes( 'script', array('type' => 'text/javascript') );
 			$elem->appendChild( $this->getDom()->createCDATASection( $file_content ) );
 			$body->appendChild( $elem );
 		}
 
 		$body->appendChild(
 			$this->getElementWithAttributes(
-				'script', array( 'type' => 'text/javascript' ),
+				'script', array('type' => 'text/javascript'),
 				'hljs.initHighlightingOnLoad();'
 			)
 		);
+	}
+
+	/**
+	 * Prepare the parsed markdown and/or user messages
+	 */
+	protected function _prepareParsedMarkdown()
+	{
+		$curent_file_with_root    = $this->getTree()->getSearch()->getCurrentFile( false );
+		$curent_file_without_root = $this->getTree()->getSearch()->getCurrentFile( true );
+
+		// Prepare the parsedown content
+		if ( empty($curent_file_without_root) )
+		{
+			if ( $this->_tree->getSearch()->isCurrentFileValid() )
+			{
+				$this->_user_messages['info'][] = array(
+					'title'   => 'No file selected',
+					'message' => 'Browse the file tree on the left and click a file.',
+				);
+			}
+			else
+			{
+				$this->_user_messages['danger'][] = array(
+					'title'   => 'Invalid request',
+					'message' => 'The file you requested is not accessable by this application.',
+				);
+			}
+		}
+		elseif ( file_exists( $curent_file_with_root ) && is_dir( $curent_file_with_root ) )
+		{
+			$this->_user_messages['warning'][] = array(
+				'title'   => 'Directory selected',
+				'message' => 'Cannot display the content of directories.
+							  Browse the file tree on the left and click a file.',
+			);
+		}
+		elseif ( file_exists( $curent_file_with_root ) && is_readable( $curent_file_with_root ) )
+		{
+			try
+			{
+				// Parsedown execution
+				$parser = new \ParsedownExtra();
+
+				$finfo         = new \finfo( FILEINFO_MIME_ENCODING );
+				$file_encoding = $finfo->file( $curent_file_with_root );
+				$file_content  = iconv( $file_encoding, 'utf-8', file_get_contents( $curent_file_with_root ) );
+
+				$markdown = $parser->text( utf8_decode( $file_content ) );
+
+				if ( !empty($markdown) )
+				{
+					$dom_implementation = new \DOMImplementation();
+					$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+					$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
+					libxml_use_internal_errors( true );
+
+					$dom->loadHTML( $markdown );
+
+					$errors = libxml_get_errors();
+
+					if ( !empty($errors) )
+					{
+						$messages = array();
+
+						/** @var \LibXMLError $error */
+						foreach ( $errors as $error )
+						{
+							$messages[] = $error->message;
+						}
+
+						$this->_user_messages['warning'][] = array(
+							'title'   => 'This markdown file contains erroneous code',
+							'message' => join( ', ', $messages ),
+						);
+					}
+
+					$this->_parsed_markdown = $dom->documentElement;
+				}
+				else
+				{
+					$this->_user_messages['warning'][] = array(
+						'title'   => ":-( You're not done yet!",
+						'message' => 'This file has no content at all.',
+					);
+				}
+			}
+			catch ( \Exception $e )
+			{
+				$this->_parsed_markdown           = null;
+				$this->_user_messages['danger'][] = array(
+					'title'   => "Oops! An error occured while parsing markdown file",
+					'message' => $curent_file_without_root . ': ' . $e->getMessage(),
+				);
+			}
+		}
+		else
+		{
+			$this->_user_messages['danger'][] = array(
+				'title'   => '404',
+				'message' => 'The file you requested does not exist or is not readable.',
+			);
+		}
+	}
+
+	/**
+	 * Prepare the TOC
+	 */
+	protected function _prepareTOC()
+	{
+		if ( !is_null( $this->_parsed_markdown ) )
+		{
+
+			// setup xpath, this can be factored out
+			$xpath = new \DOMXPath( $this->_parsed_markdown->ownerDocument );
+
+			// grab all headings h2 and down from the document
+			$headings = array('h2', 'h3');
+			foreach ( $headings as $k => $v )
+			{
+				$headings[$k] = "self::$v";
+			}
+
+			$query_headings = join( ' or ', $headings );
+			$query          = "//*[$query_headings]";
+			$headings       = $xpath->query( $query );
+
+			if ( $headings->length > 0 )
+			{
+				$dom_implementation = new \DOMImplementation();
+				$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+				$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
+				$container          = $dom->documentElement;
+
+				$toc_headline = $dom->createElement( 'h2', 'Table of Contents' );
+				$container->appendChild( $toc_headline );
+
+				// setup the table of contents element
+				$toc_list = $dom->createElement( 'ul' );
+				$toc_list->setAttribute( 'class', 'nav tmd-toc-1' );
+				$container->appendChild( $toc_list );
+
+				// iterate through headings and build the table of contents
+				$current_level = 2;
+
+				/** @var array|\DOMNode[] $parents */
+				$parents = array(false, $toc_list);
+				$i       = 0;
+
+				/** @var \DOMElement $headline */
+				foreach ( $headings as $headline )
+				{
+					$level = (int)$headline->tagName[1];
+					$name  = $headline->textContent; // no support for formatting
+
+					while ( $level > $current_level )
+					{
+						if ( !$parents[$current_level - 1]->lastChild )
+						{
+							$li = $dom->createElement( 'li' );
+							$parents[$current_level - 1]->appendChild( $li );
+						}
+
+						$sublist = $dom->createElement( 'ul' );
+						$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
+						$parents[$current_level - 1]->lastChild->appendChild( $sublist );
+						$parents[$current_level] = $sublist;
+						$current_level++;
+					}
+
+					while ( $level < $current_level )
+					{
+						$current_level--;
+					}
+
+					$anchor_id = strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . ++$i;
+
+					$line = $dom->createElement( 'li' );
+					$link = $dom->createElement( 'a', $name );
+					$line->appendChild( $link );
+					$parents[$current_level - 1]->appendChild( $line );
+
+					// setup the anchors
+					$headline->setAttribute( 'id', $anchor_id );
+					$link->setAttribute( 'href', '#' . $anchor_id );
+
+					$top_link = $headline->ownerDocument->createElement( 'a', 'Back to top' );
+					$top_link->setAttribute( 'class', 'tmd-h-toplink pull-right' );
+					$top_link->setAttribute( 'href', '#' );
+
+					$headline->appendChild( $top_link );
+				}
+
+				// Set the TOC
+				$this->_toc = $container;
+			}
+		}
 	}
 }
