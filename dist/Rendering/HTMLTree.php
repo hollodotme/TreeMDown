@@ -31,7 +31,7 @@ class HTMLTree extends FileSystem\Tree
 	/**
 	 * Return a string representation of this instance
 	 *
-	 * @return string
+	 * @return \DOMElement
 	 */
 	public function getOutput()
 	{

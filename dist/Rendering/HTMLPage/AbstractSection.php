@@ -104,7 +104,17 @@ abstract class AbstractSection
 	 */
 	public function addAsset( $type, $asset )
 	{
-		$this->_assets[ $type ][] = $asset;
+		$this->_assets[$type][] = $asset;
+	}
+
+	/**
+	 * Set all assets by an array
+	 *
+	 * @param array $assets
+	 */
+	public function setAssetsArray( array $assets )
+	{
+		$this->_assets = $assets;
 	}
 
 	/**
@@ -123,7 +133,7 @@ abstract class AbstractSection
 		}
 		elseif ( array_key_exists( $type, $this->_assets ) )
 		{
-			$assets = $this->_assets[ $type ];
+			$assets = $this->_assets[$type];
 		}
 
 		return $assets;
@@ -137,7 +147,17 @@ abstract class AbstractSection
 	 */
 	public function setMetaData( $type, $value )
 	{
-		$this->_meta_data[ $type ] = $value;
+		$this->_meta_data[$type] = $value;
+	}
+
+	/**
+	 * Set a whole meta data array
+	 *
+	 * @param array $meta_data
+	 */
+	public function setMetaDataArray( array $meta_data )
+	{
+		$this->_meta_data = $meta_data;
 	}
 
 	/**
@@ -153,7 +173,7 @@ abstract class AbstractSection
 
 		if ( array_key_exists( $type, $this->_meta_data ) )
 		{
-			$meta_data = $this->_meta_data[ $type ];
+			$meta_data = $this->_meta_data[$type];
 		}
 
 		return $meta_data;

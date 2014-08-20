@@ -55,7 +55,9 @@ class Body extends AbstractSection
 	 */
 	public function addNodes()
 	{
+		// Add Body element
 		$body = $this->getElementWithAttributes( 'body', array('role' => 'document') );
+		$this->getContainer()->appendChild( $body );
 
 		if ( !is_null( $this->_toc ) )
 		{
@@ -64,13 +66,9 @@ class Body extends AbstractSection
 			$body->setAttribute( 'data-offset', '75' );
 		}
 
-		// Header nav section
+		// Add header nav section
 		$header = new Header( $this->_dom, $body, $this->_tree );
-		foreach ( $this->_meta_data as $type => $value )
-		{
-			$header->setMetaData( $type, $value );
-		}
-
+		$header->setMetaDataArray( $this->_meta_data );
 		$header->prepare();
 		$header->addNodes();
 
@@ -86,202 +84,62 @@ class Body extends AbstractSection
 		$row->setAttribute( 'class', 'row' );
 		$container->appendChild( $row );
 
-		$nav = $this->_dom->createElement( 'div' );
-		$nav->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs' );
-		$row->appendChild( $nav );
+		$sidebar_column = $this->_dom->createElement( 'div' );
+		$sidebar_column->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs' );
+		$row->appendChild( $sidebar_column );
 
-		$content = $this->_dom->createElement( 'div' );
-		$row->appendChild( $content );
+		$content_column = $this->_dom->createElement( 'div' );
+		$row->appendChild( $content_column );
 
 		// TOC exists?
 		if ( !is_null( $this->_toc ) )
 		{
-			$content->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
+			$content_column->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
 
 			// Add TOC column
-			$toc = $this->_dom->createElement( 'div' );
-			$toc->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
-			$row->appendChild( $toc );
+			$toc_column = $this->_dom->createElement( 'div' );
+			$toc_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
+			$row->appendChild( $toc_column );
 
-			$this->_addTOCSection( $toc );
+			$toc = new TOC( $this->_dom, $toc_column, $this->_tree );
+			$toc->setMetaDataArray( $this->_meta_data );
+			$toc->setToc( $this->_toc );
+
+			$toc->prepare();
+			$toc->addNodes();
 		}
 		else
 		{
-			$content->setAttribute( 'class', 'col-lg-9 col-md-9 col-sm-8 col-xs-12' );
+			$content_column->setAttribute( 'class', 'col-lg-9 col-md-9 col-sm-8 col-xs-12' );
 		}
 
-		$this->_addNavSection( $nav );
-		$this->_addContentSection( $content );
-		$this->_addFooterSection( $body );
-		$this->_addScriptSection( $body );
+		// Add sidebar section
+		$sidebar = new Sidebar( $this->_dom, $sidebar_column, $this->_tree );
+		$sidebar->setMetaDataArray( $this->_meta_data );
+		$sidebar->prepare();
+		$sidebar->addNodes();
 
-		$this->getContainer()->appendChild( $body );
-	}
+		// Add content section
+		$content = new Content( $this->_dom, $content_column, $this->_tree );
+		$content->setMetaDataArray( $this->_meta_data );
+		$content->setUserMessages( $this->_user_messages );
+		$content->setParsedMarkdown( $this->_parsed_markdown );
+		$content->prepare();
+		$content->addNodes();
 
-	/**
-	 * Adds the page navigation section
-	 *
-	 * @param \DOMElement $nav
-	 */
-	protected function _addNavSection( \DOMElement $nav )
-	{
-		$panel = $this->_dom->createElement( 'div' );
-		$panel->setAttribute( 'class', 'panel panel-default' );
-		$panel->setAttribute( 'id', 'tmd-nav' );
-		$nav->appendChild( $panel );
+		// Add footer section
+		$footer = new Footer( $this->_dom, $body, $this->_tree );
+		$footer->setMetaDataArray( $this->_meta_data );
+		$footer->setTocExists( !is_null( $this->_toc ) );
+		$footer->prepare();
+		$footer->addNodes();
 
-		$content = $this->_dom->createElement( 'div' );
-		$content->setAttribute( 'class', 'panel-body' );
-		$panel->appendChild( $content );
-
-		// Tree
-		$content->appendChild( $this->_dom->importNode( $this->_tree->getOutput(), true ) );
-	}
-
-	/**
-	 * Adds the page content section
-	 *
-	 * @param \DOMElement $content
-	 */
-	protected function _addContentSection( \DOMElement $content )
-	{
-		$div = $this->_dom->createElement( 'div' );
-		$div->setAttribute( 'class', 'markdown-content' );
-		$div->setAttribute( 'id', 'tmd-main-content' );
-		$content->appendChild( $div );
-
-		// Add all user messages
-		foreach ( $this->_user_messages as $severity => $messages )
-		{
-			foreach ( $messages as $message )
-			{
-				$this->_addUserMessage( $div, $severity, $message['title'], $message['message'] );
-			}
-		}
-
-		// Import parsed content?
-		if ( !is_null( $this->_parsed_markdown ) )
-		{
-			$div->appendChild( $this->getDom()->importNode( $this->_parsed_markdown, true ) );
-		}
-	}
-
-	/**
-	 * Adds the table-of-contents section
-	 *
-	 * @param \DOMElement $toc
-	 */
-	protected function _addTOCSection( \DOMElement $toc )
-	{
-		if ( !is_null( $this->_toc ) )
-		{
-			$container = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
-			$container->appendChild( $this->getDom()->importNode( $this->_toc, true ) );
-			$toc->appendChild( $container );
-		}
-	}
-
-	/**
-	 * Adds a user message to the content section
-	 *
-	 * @param \DOMElement $elem
-	 * @param string      $severity
-	 * @param string      $header
-	 * @param string      $message
-	 */
-	protected function _addUserMessage( \DOMElement $elem, $severity, $header, $message )
-	{
-		$panel = $this->_dom->createElement( 'div' );
-		$panel->setAttribute( 'class', 'panel panel-' . $severity );
-		$elem->appendChild( $panel );
-
-		$heading = $this->_dom->createElement( 'div' );
-		$heading->setAttribute( 'class', 'panel-heading' );
-		$panel->appendChild( $heading );
-
-		$title = $this->_dom->createElement( 'h3', $header );
-		$title->setAttribute( 'class', 'panel-title' );
-		$heading->appendChild( $title );
-
-		$content = $this->_dom->createElement( 'div', $message );
-		$content->setAttribute( 'class', 'panel-body' );
-		$panel->appendChild( $content );
-	}
-
-	/**
-	 * Adds the page footer to content section
-	 *
-	 * @param \DOMElement $body
-	 */
-	protected function _addFooterSection( \DOMElement $body )
-	{
-		$container = $this->getDom()->createElement( 'footer' );
-		$body->appendChild( $container );
-
-		$container->appendChild( $this->getElementWithAttributes( 'hr', array('class' => 'clearfix') ) );
-
-		$row = $this->getElementWithAttributes( 'div', array('class' => 'tmd-footer row') );
-		$container->appendChild( $row );
-
-		$nav = $this->getElementWithAttributes( 'div', array('class' => 'col-lg-3 col-md-3 col-sm-4 hidden-xs') );
-		$nav->appendChild( $this->getDom()->createTextNode( '' ) );
-		$row->appendChild( $nav );
-
-		$content = $this->getDom()->createElement( 'div' );
-		$row->appendChild( $content );
-
-		$span_company = $this->getElementWithAttributes(
-			'span',
-			array('class' => 'pull-right small text-muted'),
-			sprintf(
-				'%s &middot; &copy; %s %s',
-				$this->getMetaData( HTMLPage::META_PROJECT_NAME ),
-				$this->getMetaData( HTMLPage::META_COMPANY ),
-				date( 'Y' )
-			)
-		);
-
-		if ( !is_null( $this->_toc ) )
-		{
-			$content->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
-
-			$toc = $this->getDom()->createElement( 'div' );
-			$toc->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
-			$toc->appendChild( $span_company );
-			$row->appendChild( $toc );
-		}
-		else
-		{
-			$content->setAttribute( 'class', 'col-lg-9 col-md-9 col-sm-8 col-xs-12' );
-			$content->appendChild( $span_company );
-		}
-
-		$totop = $this->getElementWithAttributes( 'div', array('class' => 'small text-center') );
-		$totop->appendChild( $this->getElementWithAttributes( 'a', array('href' => '#'), 'Back to top' ) );
-		$content->appendChild( $totop );
-	}
-
-	/**
-	 * Adds the scripts to the body section
-	 *
-	 * @param \DOMElement $body
-	 */
-	protected function _addScriptSection( \DOMElement $body )
-	{
-		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $js_file )
-		{
-			$file_content = file_get_contents( $js_file );
-			$elem         = $this->getElementWithAttributes( 'script', array('type' => 'text/javascript') );
-			$elem->appendChild( $this->getDom()->createCDATASection( $file_content ) );
-			$body->appendChild( $elem );
-		}
-
-		$body->appendChild(
-			$this->getElementWithAttributes(
-				'script', array('type' => 'text/javascript'),
-				'hljs.initHighlightingOnLoad();'
-			)
-		);
+		// Add scripts section
+		$scripts = new Scripts( $this->_dom, $body, $this->_tree );
+		$scripts->setMetaDataArray( $this->_meta_data );
+		$scripts->setAssetsArray( $this->_assets );
+		$scripts->prepare();
+		$scripts->addNodes();
 	}
 
 	/**
