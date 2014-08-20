@@ -8,6 +8,7 @@
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
 use hollodotme\TreeMDown\Rendering\HTMLPage;
+use hollodotme\TreeMDown\Utilities\FileEncoder;
 
 /**
  * Class Body
@@ -123,7 +124,10 @@ class Body extends AbstractSection
 		$content = new Content( $content_column, $this->_tree );
 		$content->setMetaDataArray( $this->_meta_data );
 		$content->setUserMessages( $this->_user_messages );
-		$content->setParsedMarkdown( $this->_parsed_markdown );
+		if ( !is_null( $this->_parsed_markdown ) )
+		{
+			$content->setParsedMarkdown( $this->_parsed_markdown );
+		}
 		$content->prepare();
 		$content->addNodes();
 
@@ -183,11 +187,8 @@ class Body extends AbstractSection
 				// Parsedown execution
 				$parser = new \ParsedownExtra();
 
-				$finfo         = new \finfo( FILEINFO_MIME_ENCODING );
-				$file_encoding = $finfo->file( $curent_file_with_root );
-				$file_content  = iconv( $file_encoding, 'utf-8', file_get_contents( $curent_file_with_root ) );
-
-				$markdown = $parser->text( utf8_decode( $file_content ) );
+				$file_encoder = new FileEncoder( $curent_file_with_root );
+				$markdown = $parser->text( utf8_decode( $file_encoder->getFileContents() ) );
 
 				if ( !empty($markdown) )
 				{
