@@ -14,14 +14,14 @@ namespace hollodotme\TreeMDown\Rendering;
  */
 class HTMLPage
 {
-	const ASSET_CSS = 'asset_css';
+	const ASSET_CSS  = 'asset_css';
 	const ASSET_FONT = 'asset_font';
-	const ASSET_JS = 'asset_js';
-	const ASSET_IMG = 'asset_img';
+	const ASSET_JS   = 'asset_js';
+	const ASSET_IMG  = 'asset_img';
 
 	const META_PROJECT_NAME = 'meta_project_name';
-	const META_ABSTRACT = 'meta_abstract';
-	const META_COMPANY = 'meta_company';
+	const META_ABSTRACT     = 'meta_abstract';
+	const META_COMPANY      = 'meta_company';
 
 	/**
 	 * Tree instance
@@ -57,6 +57,13 @@ class HTMLPage
 	 * @var string
 	 */
 	protected $_company = 'Company';
+
+	/**
+	 * Github ribbon enabled?
+	 *
+	 * @var bool
+	 */
+	protected $_github_ribbon_enabled = false;
 
 	/**
 	 * Constructor
@@ -105,6 +112,16 @@ class HTMLPage
 	}
 
 	/**
+	 * Enable/disable github ribbon
+	 *
+	 * @param bool $enable
+	 */
+	public function enableGithubRibbon( $enable )
+	{
+		$this->_github_ribbon_enabled = $enable;
+	}
+
+	/**
 	 * Return the page output
 	 *
 	 * @return string
@@ -123,9 +140,14 @@ class HTMLPage
 		// Add css assets
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
+
+		if ( $this->_github_ribbon_enabled )
+		{
+			$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-fork-ribbon.min.css' );
+		}
 
 		// Add meta data
 		$head->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
@@ -134,6 +156,7 @@ class HTMLPage
 
 		// Init body section
 		$body = new HTMLPage\Body( $this->_dom->documentElement, $this->_tree );
+		$body->enableGithubRibbon( $this->_github_ribbon_enabled );
 
 		// Add script assets
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );

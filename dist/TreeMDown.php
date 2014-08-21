@@ -1,6 +1,7 @@
 <?php
 /**
  * Main class for using TreeMDown
+ *
  * @author hwoltersdorf
  */
 
@@ -9,9 +10,11 @@ namespace hollodotme\TreeMDown;
 use hollodotme\TreeMDown\FileSystem\Search;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 use hollodotme\TreeMDown\Rendering\HTMLTree;
+use hollodotme\TreeMDown\Utilities\FileEncoder;
 
 /**
  * Class TreeMDown
+ *
  * @package hollodotme\TreeMDown
  */
 class TreeMDown
@@ -19,24 +22,28 @@ class TreeMDown
 
 	/**
 	 * The Search instance
+	 *
 	 * @var Search|null
 	 */
 	protected $_search = null;
 
 	/**
 	 * The HTMLTree instance
+	 *
 	 * @var HTMLTree|null
 	 */
 	protected $_tree = null;
 
 	/**
 	 * The default file
+	 *
 	 * @var string
 	 */
 	protected $_default_file = 'index.md';
 
 	/**
 	 * Page metadata
+	 *
 	 * @var array
 	 */
 	protected $_metadata = array(
@@ -44,6 +51,13 @@ class TreeMDown
 		'short_description' => "[triː <'em> daʊn]",
 		'company_name'      => 'hollodotme',
 	);
+
+	/**
+	 * Github ribbon enabled?
+	 *
+	 * @var bool
+	 */
+	protected $_github_ribbon_enabled = false;
 
 	/**
 	 * Constructor
@@ -55,8 +69,8 @@ class TreeMDown
 		// Init search
 		$this->_search = new Search( $root_dir, isset($_GET['tmd_q']) ? $_GET['tmd_q'] : '' );
 		$this->_search->setCurrentFile( isset($_GET['tmd_f']) ? $_GET['tmd_f'] : $this->_default_file );
-		$this->_search->setExcludePatterns( array('.*') );
-		$this->_search->setIncludePatterns( array('*.md', '*.markdown') );
+		$this->_search->setExcludePatterns( array( '.*' ) );
+		$this->_search->setIncludePatterns( array( '*.md', '*.markdown' ) );
 
 		// Init tree
 		$this->_tree = new HTMLTree( $this->_search );
@@ -74,6 +88,7 @@ class TreeMDown
 
 	/**
 	 * Return the project name
+	 *
 	 * @return string
 	 */
 	public function getProjectName()
@@ -93,6 +108,7 @@ class TreeMDown
 
 	/**
 	 * Return the short description
+	 *
 	 * @return string
 	 */
 	public function getShortDescription()
@@ -112,6 +128,7 @@ class TreeMDown
 
 	/**
 	 * Return the company name
+	 *
 	 * @return string
 	 */
 	public function getCompanyName()
@@ -121,6 +138,7 @@ class TreeMDown
 
 	/**
 	 * Return the default file (relative to root directory)
+	 *
 	 * @return string
 	 */
 	public function getDefaultFile()
@@ -170,6 +188,7 @@ class TreeMDown
 
 	/**
 	 * Return the include file patterns
+	 *
 	 * @return array
 	 */
 	public function getIncludePatterns()
@@ -191,11 +210,28 @@ class TreeMDown
 
 	/**
 	 * Return the file/path exclude patterns
+	 *
 	 * @return array
 	 */
 	public function getExcludePatterns()
 	{
 		return $this->_search->getExcludePatterns();
+	}
+
+	/**
+	 * Enable Github ribbon
+	 */
+	public function enableGithubRibbon()
+	{
+		$this->_github_ribbon_enabled = true;
+	}
+
+	/**
+	 * Disable Github ribbon
+	 */
+	public function disableGithubRibbon()
+	{
+		$this->_github_ribbon_enabled = false;
 	}
 
 	/**
@@ -212,9 +248,11 @@ class TreeMDown
 		{
 			$headers['Content-type'] = 'text/plain; charset=UTF-8';
 
-			if ( $this->_search->isCurrentFileValid() && is_file( $this->_search->getCurrentFile( false ) ) )
+			$current_file = $this->_search->getCurrentFile( false );
+			if ( $this->_search->isCurrentFileValid() && is_file( $current_file ) )
 			{
-				$output = file_get_contents( $this->_search->getCurrentFile( false ) );
+				$file_encoder = new FileEncoder( $current_file );
+				$output       = $file_encoder->getFileContents();
 			}
 			else
 			{
@@ -231,6 +269,7 @@ class TreeMDown
 			$page->setProjectName( $this->getProjectName() );
 			$page->setShortDescription( $this->getShortDescription() );
 			$page->setCompany( $this->getCompanyName() );
+			$page->enableGithubRibbon( $this->_github_ribbon_enabled );
 
 			$output = $page->getOutput();
 		}

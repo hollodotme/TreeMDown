@@ -66,9 +66,7 @@ class Content extends AbstractSection
 	public function addNodes()
 	{
 		$div = $this->getDom()->createElement( 'div' );
-		$div->setAttribute( 'class', 'markdown-content' );
-		$div->setAttribute( 'id', 'tmd-main-content' );
-
+		$div->setAttribute( 'class', 'tmd-main-content markdown-content' );
 		$this->getContainer()->appendChild( $div );
 
 		// Add all user messages

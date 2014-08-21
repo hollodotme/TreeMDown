@@ -34,6 +34,7 @@ class Body extends AbstractSection
 
 	/**
 	 * The TOF
+	 *
 	 * @var null|\DOMElement
 	 */
 	protected $_tof = null;
@@ -44,6 +45,23 @@ class Body extends AbstractSection
 	 * @var array
 	 */
 	protected $_user_messages = array();
+
+	/**
+	 * Github ribbon enabled?
+	 *
+	 * @var bool
+	 */
+	protected $_github_ribbon_enabled = false;
+
+	/**
+	 * Enable/disable github ribbon
+	 *
+	 * @param bool $enable
+	 */
+	public function enableGithubRibbon( $enable )
+	{
+		$this->_github_ribbon_enabled = $enable;
+	}
 
 	/**
 	 * Prepare the content
@@ -66,7 +84,7 @@ class Body extends AbstractSection
 	public function addNodes()
 	{
 		// Add Body element
-		$body = $this->getElementWithAttributes( 'body', array('role' => 'document') );
+		$body = $this->getElementWithAttributes( 'body', array( 'role' => 'document' ) );
 		$this->getContainer()->appendChild( $body );
 
 		if ( !is_null( $this->_toc ) )
@@ -95,7 +113,7 @@ class Body extends AbstractSection
 		$container->appendChild( $row );
 
 		$sidebar_column = $this->getDom()->createElement( 'div' );
-		$sidebar_column->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs' );
+		$sidebar_column->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs sidebar' );
 		$row->appendChild( $sidebar_column );
 
 		$content_column = $this->getDom()->createElement( 'div' );
@@ -104,17 +122,18 @@ class Body extends AbstractSection
 		// TOC exists?
 		if ( !is_null( $this->_toc ) )
 		{
-			$content_column->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
+			$content_column->setAttribute(
+				'class',
+				'col-lg-7 col-lg-offset-3 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+			);
 
 			// Add TOC column
 			$toc_column = $this->getDom()->createElement( 'div' );
-			$toc_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
+			$toc_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs toc' );
+			$toc_column->setAttribute( 'id', 'toc' );
 			$row->appendChild( $toc_column );
 
-			$toc_div = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
-			$toc_column->appendChild( $toc_div );
-
-			$toc = new TableOfContents( $toc_div, $this->_tree );
+			$toc = new TableOfContents( $toc_column, $this->_tree );
 			$toc->setMetaDataArray( $this->_meta_data );
 			$toc->setToc( $this->_toc );
 
@@ -123,7 +142,7 @@ class Body extends AbstractSection
 
 			if ( !is_null( $this->_tof ) )
 			{
-				$tof = new TableOfFigures( $toc_div, $this->_tree );
+				$tof = new TableOfFigures( $toc_column, $this->_tree );
 				$tof->setMetaDataArray( $this->_meta_data );
 				$tof->setTof( $this->_tof );
 
@@ -133,17 +152,18 @@ class Body extends AbstractSection
 		}
 		elseif ( !is_null( $this->_tof ) )
 		{
-			$content_column->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
+			$content_column->setAttribute(
+				'class',
+				'col-lg-7 col-lg-offset-3 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+			);
 
 			// Add TOF column
 			$tof_column = $this->getDom()->createElement( 'div' );
-			$tof_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
+			$tof_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs toc' );
+			$tof_column->setAttribute( 'id', 'toc' );
 			$row->appendChild( $tof_column );
 
-			$toc_div = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
-			$tof_column->appendChild( $toc_div );
-
-			$tof = new TableOfFigures( $toc_div, $this->_tree );
+			$tof = new TableOfFigures( $tof_column, $this->_tree );
 			$tof->setMetaDataArray( $this->_meta_data );
 			$tof->setTof( $this->_tof );
 
@@ -152,7 +172,10 @@ class Body extends AbstractSection
 		}
 		else
 		{
-			$content_column->setAttribute( 'class', 'col-lg-9 col-md-9 col-sm-8 col-xs-12' );
+			$content_column->setAttribute(
+				'class',
+				'col-lg-9 col-lg-offset-3 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+			);
 		}
 
 		// Add sidebar section
@@ -160,6 +183,14 @@ class Body extends AbstractSection
 		$sidebar->setMetaDataArray( $this->_meta_data );
 		$sidebar->prepare();
 		$sidebar->addNodes();
+
+		// Add GitHub ribbon?
+		if ( $this->_github_ribbon_enabled )
+		{
+			$github_ribbon = new GithubRibbon( $sidebar_column, $this->_tree );
+			$github_ribbon->prepare();
+			$github_ribbon->addNodes();
+		}
 
 		// Add content section
 		$content = new Content( $content_column, $this->_tree );
@@ -175,7 +206,6 @@ class Body extends AbstractSection
 		// Add footer section
 		$footer = new Footer( $body, $this->_tree );
 		$footer->setMetaDataArray( $this->_meta_data );
-		$footer->setTocExists( !is_null( $this->_toc ) );
 		$footer->prepare();
 		$footer->addNodes();
 
@@ -319,7 +349,7 @@ class Body extends AbstractSection
 				$current_level = 2;
 
 				/** @var array|\DOMNode[] $parents */
-				$parents = array(false, $toc_list);
+				$parents = array( false, $toc_list );
 				$i       = 0;
 
 				/** @var \DOMElement $headline */
@@ -330,16 +360,16 @@ class Body extends AbstractSection
 
 					while ( $level > $current_level )
 					{
-						if ( !$parents[$current_level - 1]->lastChild )
+						if ( !$parents[ $current_level - 1 ]->lastChild )
 						{
 							$li = $dom->createElement( 'li' );
-							$parents[$current_level - 1]->appendChild( $li );
+							$parents[ $current_level - 1 ]->appendChild( $li );
 						}
 
 						$sublist = $dom->createElement( 'ul' );
 						$sublist->setAttribute( 'class', 'nav tmd-toc-2' );
-						$parents[$current_level - 1]->lastChild->appendChild( $sublist );
-						$parents[$current_level] = $sublist;
+						$parents[ $current_level - 1 ]->lastChild->appendChild( $sublist );
+						$parents[ $current_level ] = $sublist;
 						$current_level++;
 					}
 
@@ -353,7 +383,7 @@ class Body extends AbstractSection
 					$line = $dom->createElement( 'li' );
 					$link = $dom->createElement( 'a', $name );
 					$line->appendChild( $link );
-					$parents[$current_level - 1]->appendChild( $line );
+					$parents[ $current_level - 1 ]->appendChild( $line );
 
 					// setup the anchors
 					$headline->setAttribute( 'id', $anchor_id );
@@ -408,11 +438,15 @@ class Body extends AbstractSection
 
 					// Image title
 					if ( empty($name) )
+					{
 						$name = $image->getAttribute( 'title' );
+					}
 
 					// Image filename
 					if ( empty($name) )
+					{
 						$name = basename( $image->getAttribute( 'src' ) );
+					}
 
 					$li   = $dom->createElement( 'li' );
 					$link = $dom->createElement( 'a', $name );
