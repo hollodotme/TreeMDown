@@ -33,6 +33,12 @@ class Body extends AbstractSection
 	protected $_toc = null;
 
 	/**
+	 * The TOF
+	 * @var null|\DOMElement
+	 */
+	protected $_tof = null;
+
+	/**
 	 * User messages
 	 *
 	 * @var array
@@ -49,6 +55,9 @@ class Body extends AbstractSection
 
 		// Prepare the TOC
 		$this->_prepareTOC();
+
+		// Prepare the TOF
+		$this->_prepareTOF();
 	}
 
 	/**
@@ -102,12 +111,44 @@ class Body extends AbstractSection
 			$toc_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
 			$row->appendChild( $toc_column );
 
-			$toc = new TOC( $toc_column, $this->_tree );
+			$toc_div = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
+			$toc_column->appendChild( $toc_div );
+
+			$toc = new TableOfContents( $toc_div, $this->_tree );
 			$toc->setMetaDataArray( $this->_meta_data );
 			$toc->setToc( $this->_toc );
 
 			$toc->prepare();
 			$toc->addNodes();
+
+			if ( !is_null( $this->_tof ) )
+			{
+				$tof = new TableOfFigures( $toc_div, $this->_tree );
+				$tof->setMetaDataArray( $this->_meta_data );
+				$tof->setTof( $this->_tof );
+
+				$tof->prepare();
+				$tof->addNodes();
+			}
+		}
+		elseif ( !is_null( $this->_tof ) )
+		{
+			$content_column->setAttribute( 'class', 'col-lg-7 col-md-7 col-sm-8 col-xs-12' );
+
+			// Add TOF column
+			$tof_column = $this->getDom()->createElement( 'div' );
+			$tof_column->setAttribute( 'class', 'col-lg-2 col-md-2 hidden-sm hidden-xs' );
+			$row->appendChild( $tof_column );
+
+			$toc_div = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
+			$tof_column->appendChild( $toc_div );
+
+			$tof = new TableOfFigures( $toc_div, $this->_tree );
+			$tof->setMetaDataArray( $this->_meta_data );
+			$tof->setTof( $this->_tof );
+
+			$tof->prepare();
+			$tof->addNodes();
 		}
 		else
 		{
@@ -188,7 +229,7 @@ class Body extends AbstractSection
 				$parser = new \ParsedownExtra();
 
 				$file_encoder = new FileEncoder( $curent_file_with_root );
-				$markdown = $parser->text( utf8_decode( $file_encoder->getFileContents() ) );
+				$markdown     = $parser->text( utf8_decode( $file_encoder->getFileContents() ) );
 
 				if ( !empty($markdown) )
 				{
@@ -256,15 +297,8 @@ class Body extends AbstractSection
 			$xpath = new \DOMXPath( $this->_parsed_markdown->ownerDocument );
 
 			// grab all headings h2 and down from the document
-			$headings = array('h2', 'h3');
-			foreach ( $headings as $k => $v )
-			{
-				$headings[$k] = "self::$v";
-			}
-
-			$query_headings = join( ' or ', $headings );
-			$query          = "//*[$query_headings]";
-			$headings       = $xpath->query( $query );
+			$query    = "//*[self::h2 or self::h3]";
+			$headings = $xpath->query( $query );
 
 			if ( $headings->length > 0 )
 			{
@@ -334,6 +368,65 @@ class Body extends AbstractSection
 
 				// Set the TOC
 				$this->_toc = $container;
+			}
+		}
+	}
+
+	/**
+	 * Prepare the table of figures
+	 */
+	protected function _prepareTOF()
+	{
+		if ( !is_null( $this->_parsed_markdown ) )
+		{
+			// setup xpath, this can be factored out
+			$xpath = new \DOMXPath( $this->_parsed_markdown->ownerDocument );
+
+			$query  = "//*[self::img]";
+			$images = $xpath->query( $query );
+
+			if ( $images->length > 0 )
+			{
+				$dom_implementation = new \DOMImplementation();
+				$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+				$dom                = $dom_implementation->createDocument( '', 'html', $doc_type );
+				$container          = $dom->documentElement;
+
+				$tof_headline = $dom->createElement( 'h2', 'Figures' );
+				$container->appendChild( $tof_headline );
+
+				// setup the table of contents element
+				$tof_list = $dom->createElement( 'ul' );
+				$tof_list->setAttribute( 'class', 'tmd-toc-1' );
+				$container->appendChild( $tof_list );
+
+				/** @var \DOMElement $image */
+				foreach ( $images as $i => $image )
+				{
+					// Image alt text
+					$name = $image->getAttribute( 'alt' );
+
+					// Image title
+					if ( empty($name) )
+						$name = $image->getAttribute( 'title' );
+
+					// Image filename
+					if ( empty($name) )
+						$name = basename( $image->getAttribute( 'src' ) );
+
+					$li   = $dom->createElement( 'li' );
+					$link = $dom->createElement( 'a', $name );
+					$li->appendChild( $link );
+					$tof_list->appendChild( $li );
+
+					// setup the anchors
+					$anchor_id = 'figure_' . strtolower( preg_replace( "#[^0-9a-z]#i", '-', $name ) ) . '__' . $i;
+					$image->setAttribute( 'id', $anchor_id );
+					$link->setAttribute( 'href', '#' . $anchor_id );
+				}
+
+				// Set the TOF
+				$this->_tof = $container;
 			}
 		}
 	}

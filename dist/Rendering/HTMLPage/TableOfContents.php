@@ -10,7 +10,7 @@ namespace hollodotme\TreeMDown\Rendering\HTMLPage;
  * Class TOC
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
-class TOC extends AbstractSection
+class TableOfContents extends AbstractSection
 {
 
 	/**
@@ -42,9 +42,7 @@ class TOC extends AbstractSection
 	{
 		if ( !is_null( $this->_toc ) )
 		{
-			$container = $this->getElementWithAttributes( 'div', array('id' => 'toc') );
-			$container->appendChild( $this->getDom()->importNode( $this->_toc, true ) );
-			$this->getContainer()->appendChild( $container );
+			$this->getContainer()->appendChild( $this->getDom()->importNode( $this->_toc, true ) );
 		}
 	}
 }
