@@ -14,17 +14,6 @@ namespace hollodotme\TreeMDown\FileSystem;
  */
 class Tree extends Entry implements \Iterator, \Countable
 {
-	/**
-	 * Flag: Hide empty folders
-	 */
-	const EXCLUDE_EMPTY_FOLDERS = 1;
-
-	/**
-	 * Flags
-	 *
-	 * @var int
-	 */
-	protected $_flags = 0;
 
 	/**
 	 * All tree entries on this nesting level
@@ -80,26 +69,6 @@ class Tree extends Entry implements \Iterator, \Countable
 	public function getLeafObjectClass()
 	{
 		return $this->_leaf_object_class;
-	}
-
-	/**
-	 * Set the flags
-	 *
-	 * @param int $flags Flags
-	 */
-	public function setFlags( $flags )
-	{
-		$this->_flags = $flags;
-	}
-
-	/**
-	 * Return the Flags
-	 *
-	 * @return int
-	 */
-	public function getFlags()
-	{
-		return $this->_flags;
 	}
 
 	/**
@@ -261,7 +230,7 @@ class Tree extends Entry implements \Iterator, \Countable
 
 		if ( $this->isActive() )
 		{
-			$string .= '**' . $this->_filename . '**';
+			$string .= '**' . $this->getDisplayFilename() . '**';
 		}
 		else
 		{
@@ -306,6 +275,10 @@ class Tree extends Entry implements \Iterator, \Countable
 					__NAMESPACE__
 				)
 			);
+		}
+		else
+		{
+			$leaf_object->setFlags( $this->_flags );
 		}
 
 		return $leaf_object;

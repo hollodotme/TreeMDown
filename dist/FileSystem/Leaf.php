@@ -57,11 +57,11 @@ class Leaf extends Entry
 		}
 		elseif ( $this->isActive() )
 		{
-			$string .= '**' . $this->_filename . '**';
+			$string .= '**' . $this->getDisplayFilename() . '**';
 		}
 		else
 		{
-			$string .= $this->_filename;
+			$string .= $this->getDisplayFilename();
 		}
 
 		return $string;

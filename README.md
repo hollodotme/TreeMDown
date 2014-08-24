@@ -99,6 +99,21 @@ $treemdown->hideEmptyFolders();
 #
 $treemdown->setDefaultFile('README.md');
 
+# Show/Hide filename suffix
+#
+# Default: Suffix is shown
+#
+#$tmd->showFilenameSuffix();
+$tmd->hideFilenameSuffix();
+
+# Prettify directory and file names
+# This removes all "-" and "_" from the names displayed in the tree
+#
+# Default: Pretty names are disabled
+#
+#$tmd->disablePrettyNames();
+$tmd->enablePrettyNames();
+
 # [File system options]
 #
 # Set the patterns for files you want to include

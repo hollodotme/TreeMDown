@@ -62,7 +62,7 @@ class HTMLTree extends FileSystem\Tree
 		$glyph_text = $dom->createTextNode( '' );
 		$glyph->appendChild( $glyph_text );
 
-		$link_text = $dom->createElement( 'span', $this->_filename );
+		$link_text = $dom->createElement( 'span', $this->getDisplayFilename() );
 		$a->appendChild( $link_text );
 
 		if ( $this->_search->isActive() )
