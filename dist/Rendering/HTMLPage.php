@@ -178,17 +178,4 @@ class HTMLPage
 
 		return $this->_dom;
 	}
-
-	/**
-	 * Return the page output
-	 *
-	 * @return string
-	 */
-	public function getOutput()
-	{
-		$dom               = $this->getDOMDocument();
-		$dom->formatOutput = false;
-
-		return $dom->saveHTML();
-	}
 }

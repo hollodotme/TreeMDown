@@ -69,8 +69,8 @@ class TreeMDown
 		// Init search
 		$this->_search = new Search( $root_dir, isset($_GET['tmd_q']) ? $_GET['tmd_q'] : '' );
 		$this->_search->setCurrentFile( isset($_GET['tmd_f']) ? $_GET['tmd_f'] : $this->_default_file );
-		$this->_search->setExcludePatterns( array( '.*' ) );
-		$this->_search->setIncludePatterns( array( '*.md', '*.markdown' ) );
+		$this->_search->setExcludePatterns( array('.*') );
+		$this->_search->setIncludePatterns( array('*.md', '*.markdown') );
 
 		// Init tree
 		$this->_tree = new HTMLTree( $this->_search );
@@ -266,6 +266,10 @@ class TreeMDown
 		$this->_github_ribbon_enabled = false;
 	}
 
+	public function getDOMDocument()
+	{
+	}
+
 	/**
 	 * Return the page output (HTML / Raw)
 	 *
@@ -303,7 +307,7 @@ class TreeMDown
 			$page->setCompany( $this->getCompanyName() );
 			$page->enableGithubRibbon( $this->_github_ribbon_enabled );
 
-			$output = $page->getOutput();
+			$output = $page->getDOMDocument();
 		}
 
 		return $output;
@@ -322,6 +326,14 @@ class TreeMDown
 			header( "{$type}: {$value}" );
 		}
 
-		echo $output;
+		if ( $output instanceof \DOMDocument )
+		{
+			$output->formatOutput = false;
+			echo $output->saveHTML();
+		}
+		else
+		{
+			echo $output;
+		}
 	}
 }
