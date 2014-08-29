@@ -10,7 +10,7 @@
 		"grep",
 		"html"
 	],
-	"homepage":    "https://github.com/hollodotme/TreeMDown",
+	"homepage":    "http://hollo.me/treemdown",
 	"type":        "library",
 	"license":     "MIT",
 	"authors":     [
