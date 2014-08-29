@@ -114,6 +114,7 @@ class Body extends AbstractSection
 
 		$sidebar_column = $this->getDom()->createElement( 'div' );
 		$sidebar_column->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs sidebar' );
+		$sidebar_column->setAttribute( 'id', 'tmd-sidebar' );
 		$row->appendChild( $sidebar_column );
 
 		$content_column = $this->getDom()->createElement( 'div' );
