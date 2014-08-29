@@ -175,6 +175,38 @@ class TreeMDown
 	}
 
 	/**
+	 * Enable prettified names of folders and files
+	 */
+	public function enablePrettyNames()
+	{
+		$this->_tree->setFlags( $this->_tree->getFlags() | HTMLTree::PRETTIFY_NAMES );
+	}
+
+	/**
+	 * Disable prettified names of folders and files
+	 */
+	public function disablePrettyNames()
+	{
+		$this->_tree->setFlags( $this->_tree->getFlags() & ~HTMLTree::PRETTIFY_NAMES );
+	}
+
+	/**
+	 * Hide filename suffix
+	 */
+	public function hideFilenameSuffix()
+	{
+		$this->_tree->setFlags( $this->_tree->getFlags() | HTMLTree::HIDE_FILENAME_SUFFIX );
+	}
+
+	/**
+	 * Show filename suffix
+	 */
+	public function showFilenameSuffix()
+	{
+		$this->_tree->setFlags( $this->_tree->getFlags() & ~HTMLTree::HIDE_FILENAME_SUFFIX );
+	}
+
+	/**
 	 * Set the include file patterns
 	 *
 	 * @example array('*.md', '*.markdown')

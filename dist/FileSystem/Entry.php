@@ -14,6 +14,27 @@ namespace hollodotme\TreeMDown\FileSystem;
  */
 class Entry
 {
+	/**
+	 * Flag: Hide empty folders
+	 */
+	const EXCLUDE_EMPTY_FOLDERS = 1;
+
+	/**
+	 * Hide filename suffix
+	 */
+	const HIDE_FILENAME_SUFFIX = 2;
+
+	/**
+	 * Flag: Prettify directory and file names
+	 */
+	const PRETTIFY_NAMES = 4;
+
+	/**
+	 * Flags
+	 *
+	 * @var int
+	 */
+	protected $_flags = 0;
 
 	/**
 	 * Full path to file/folder
@@ -71,6 +92,26 @@ class Entry
 	}
 
 	/**
+	 * Set the flags
+	 *
+	 * @param int $flags Flags
+	 */
+	public function setFlags( $flags )
+	{
+		$this->_flags = $flags;
+	}
+
+	/**
+	 * Return the Flags
+	 *
+	 * @return int
+	 */
+	public function getFlags()
+	{
+		return $this->_flags;
+	}
+
+	/**
 	 * Rwturn whether the entry is valid
 	 *
 	 * @return bool
@@ -111,6 +152,29 @@ class Entry
 	public function getFilename()
 	{
 		return $this->_filename;
+	}
+
+	/**
+	 * Return the display filename
+	 * @return string
+	 */
+	public function getDisplayFilename()
+	{
+		$display_filename = $this->_filename;
+
+		// Hide suffix
+		if ( $this->_flags & self::HIDE_FILENAME_SUFFIX )
+		{
+			$display_filename = preg_replace( "#^(.+)\.[^\.]+$#", '$1', $display_filename );
+		}
+
+		// Prettify names?
+		if ( $this->_flags & self::PRETTIFY_NAMES )
+		{
+			$display_filename = preg_replace( "#[\-_]#", ' ', $display_filename );
+		}
+
+		return $display_filename;
 	}
 
 	/**
