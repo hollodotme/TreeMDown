@@ -14,14 +14,14 @@ namespace hollodotme\TreeMDown\Rendering;
  */
 class HTMLPage
 {
-	const ASSET_CSS  = 'asset_css';
+	const ASSET_CSS = 'asset_css';
 	const ASSET_FONT = 'asset_font';
-	const ASSET_JS   = 'asset_js';
-	const ASSET_IMG  = 'asset_img';
+	const ASSET_JS = 'asset_js';
+	const ASSET_IMG = 'asset_img';
 
 	const META_PROJECT_NAME = 'meta_project_name';
-	const META_ABSTRACT     = 'meta_abstract';
-	const META_COMPANY      = 'meta_company';
+	const META_ABSTRACT = 'meta_abstract';
+	const META_COMPANY = 'meta_company';
 
 	/**
 	 * Tree instance
@@ -122,11 +122,10 @@ class HTMLPage
 	}
 
 	/**
-	 * Return the page output
-	 *
-	 * @return string
+	 * Return the rendered DOMDocument
+	 * @return \DOMDocument
 	 */
-	public function getOutput()
+	public function getDOMDocument()
 	{
 		// Init head section
 		$head = new HTMLPage\Head( $this->_dom->documentElement, $this->_tree );
@@ -177,8 +176,19 @@ class HTMLPage
 		$head->addNodes();
 		$body->addNodes();
 
-		$this->_dom->formatOutput = false;
+		return $this->_dom;
+	}
 
-		return $this->_dom->saveHTML();
+	/**
+	 * Return the page output
+	 *
+	 * @return string
+	 */
+	public function getOutput()
+	{
+		$dom               = $this->getDOMDocument();
+		$dom->formatOutput = false;
+
+		return $dom->saveHTML();
 	}
 }
