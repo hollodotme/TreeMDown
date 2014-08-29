@@ -268,6 +268,9 @@ class TreeMDown
 		$this->_options->set( Opt::GITHUB_RIBBON_ENABLED, false );
 	}
 
+	/**
+	 * Prepare the options
+	 */
 	protected function _prepareOptions()
 	{
 		// Current file
@@ -306,25 +309,30 @@ class TreeMDown
 		$this->_options->set( Opt::BASE_PARAMS, $base_params );
 	}
 
+	/**
+	 * Prepare the search
+	 */
 	protected function _prepareSearch()
 	{
 		// Init search
 		$this->_search = new Search( $this->_options );
 	}
 
+	/**
+	 * Prepare the tree
+	 */
 	protected function _prepareTree()
 	{
 		// Init tree
 		$this->_tree = new HTMLTree( $this->_search );
 	}
 
+	/**
+	 * Prepare the page
+	 */
 	protected function _preparePage()
 	{
 		$this->_page = new HTMLPage( $this->_tree );
-	}
-
-	public function getDOMDocument()
-	{
 	}
 
 	/**
