@@ -2,10 +2,12 @@
 /**
  * Github ribbon section
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
+
+use hollodotme\TreeMDown\Misc\Opt;
 
 /**
  * Class GithubRibbon
@@ -31,7 +33,7 @@ class GithubRibbon extends AbstractSection
 			$this->getElementWithAttributes(
 				'a',
 				array(
-					'href' => 'https://github.com/hollodotme/TreeMDown',
+					'href'   => $this->getOptions()->get( Opt::GITHUB_RIBBON_URL ),
 					'target' => '_blank'
 				),
 				'Fork me on GitHub'

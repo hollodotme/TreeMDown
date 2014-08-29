@@ -1,13 +1,15 @@
 <?php
 /**
  * Table of figures section
- * @author hwoltersdorf
+ *
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
  * Class TableOfFigures
+ *
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
 class TableOfFigures extends AbstractSection
@@ -15,12 +17,14 @@ class TableOfFigures extends AbstractSection
 
 	/**
 	 * The TOF
+	 *
 	 * @var null|\DOMElement
 	 */
 	protected $_tof = null;
 
 	/**
 	 * Return the TOF
+	 *
 	 * @return \DOMElement|null
 	 */
 	public function getTof()

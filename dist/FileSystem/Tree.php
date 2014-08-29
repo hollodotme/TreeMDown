@@ -7,6 +7,8 @@
 
 namespace hollodotme\TreeMDown\FileSystem;
 
+use hollodotme\TreeMDown\Misc\Opt;
+
 /**
  * Class Tree
  *
@@ -128,36 +130,6 @@ class Tree extends Entry implements \Iterator, \Countable
 	}
 
 	/**
-	 * Return whether this tree contains the $filepath
-	 *
-	 * @param string $filepath Filepath
-	 *
-	 * @return bool
-	 */
-	public function containsPath( $filepath )
-	{
-		$contains_path = false;
-
-		$this->rewind();
-
-		while ( !$contains_path && $this->valid() )
-		{
-			if ( $this->current()->getFilePath( false ) == $filepath )
-			{
-				$contains_path = true;
-			}
-			elseif ( $this->current() instanceof Tree )
-			{
-				$contains_path = $this->current()->containsPath( $filepath );
-			}
-
-			$this->next();
-		}
-
-		return $contains_path;
-	}
-
-	/**
 	 * Builds the tree recursive
 	 */
 	public function buildTree()
@@ -168,10 +140,7 @@ class Tree extends Entry implements \Iterator, \Countable
 		}
 		else
 		{
-			$tree        = array( 'dirs' => array(), 'files' => array() );
-			$current_dir = $this->_filepath;
-
-			$iterator = new \DirectoryIterator( $current_dir );
+			$iterator = new \DirectoryIterator( $this->_filepath );
 
 			foreach ( $iterator as $file_info )
 			{
@@ -182,41 +151,77 @@ class Tree extends Entry implements \Iterator, \Countable
 					{
 						// Recursion
 						$sub_tree = new static( $this->_search, $file_info->getPathname() );
-						$sub_tree->setFlags( $this->_flags );
 						$sub_tree->setLeafObjectClass( $this->_leaf_object_class );
 						$sub_tree->buildTree();
 
-						if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) || $sub_tree->count() > 0 )
+						if ( $sub_tree->isValid() )
 						{
-							$tree['dirs'][ $file_info->getFilename() ] = $sub_tree;
+							if ( !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) || $sub_tree->count() > 0 )
+							{
+								$this->_entries[] = $sub_tree;
+							}
 						}
 					}
 					// Leaf!
 					elseif ( $file_info->isFile() )
 					{
-						$tree['files'][ $file_info->getFilename() ] = $this->getLeafObject(
-							$file_info->getPathname()
-						);
+						$leaf = $this->getLeafObject( $file_info->getPathname() );
+						if ( $leaf->isValid() )
+						{
+							$this->_entries[] = $leaf;
+						}
 					}
 				}
 			}
 
 			// Error on empty directories
-			if ( !($this->_flags & self::EXCLUDE_EMPTY_FOLDERS) && empty($tree['files']) )
+			if ( !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) && !$this->hasFiles() )
 			{
-				$leaf = $this->getLeafObject( $current_dir );
+				$leaf = $this->getLeafObject( $this->_filepath );
 				$leaf->setError( "Directory has no files matching the filter." );
-				$tree['files'][''] = $leaf;
+				$this->_entries[] = $leaf;
 			}
 
-			uksort( $tree['dirs'], "strnatcasecmp" );
-			uksort( $tree['files'], "strnatcasecmp" );
-
-			$this->_entries = array_merge(
-				array_values( $tree['dirs'] ),
-				array_values( $tree['files'] )
+			// Sort by folder and file and by name
+			usort(
+				$this->_entries,
+				function ( Entry $a, Entry $b )
+				{
+					if ( ($a instanceof Tree) && ($b instanceof Leaf) )
+					{
+						return -1;
+					}
+					elseif ( ($a instanceof Leaf) && ($b instanceof Tree) )
+					{
+						return 1;
+					}
+					else
+					{
+						return strnatcasecmp( $a->getFilename(), $b->getFilename() );
+					}
+				}
 			);
 		}
+	}
+
+	/**
+	 * Return whether this tree has files
+	 *
+	 * @return bool
+	 */
+	public function hasFiles()
+	{
+		$has_files = false;
+
+		$this->rewind();
+
+		while ( !$has_files && $this->valid() )
+		{
+			$has_files = ($this->current() instanceof Leaf);
+			$this->next();
+		}
+
+		return $has_files;
 	}
 
 	/**
@@ -275,10 +280,6 @@ class Tree extends Entry implements \Iterator, \Countable
 					__NAMESPACE__
 				)
 			);
-		}
-		else
-		{
-			$leaf_object->setFlags( $this->_flags );
 		}
 
 		return $leaf_object;

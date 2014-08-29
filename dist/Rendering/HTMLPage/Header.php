@@ -2,11 +2,12 @@
 /**
  * Header section
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
+use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
@@ -65,7 +66,7 @@ class Header extends AbstractSection
 				'class' => 'navbar-brand',
 				'href'  => '?'
 			),
-			$this->getMetaData( HTMLPage::META_PROJECT_NAME )
+			$this->getOptions()->get( Opt::NAME_PROJECT )
 		);
 		$navbar_header->appendChild( $brand );
 
@@ -87,7 +88,7 @@ class Header extends AbstractSection
 
 		$li->appendChild(
 			$this->getElementWithAttributes(
-				'a', array( 'href' => '?' ), $this->getMetaData( HTMLPage::META_ABSTRACT )
+				'a', array( 'href' => '?' ), $this->getOptions()->get( Opt::PROJECT_ABSTRACT )
 			)
 		);
 
@@ -102,30 +103,35 @@ class Header extends AbstractSection
 		);
 		$content->appendChild( $form );
 
-		$form->appendChild(
-			$this->getElementWithAttributes(
-				'input', array(
-					'type'  => 'hidden',
-					'name'  => 'tmd_f',
-					'value' => $this->getTree()->getSearch()->getCurrentFile( true ),
-				)
-			)
-		);
+		foreach ( $this->getOptions()->get( Opt::BASE_PARAMS ) as $name => $value )
+		{
+			if ( $name != 'tmd_q' )
+			{
+				$form->appendChild(
+					$this->getElementWithAttributes(
+						'input', array(
+							'type'  => 'hidden',
+							'name'  => $name,
+							'value' => $value,
+						)
+					)
+				);
+			}
+		}
 
 		$group = $this->getElementWithAttributes( 'div', array( 'class' => 'form-group' ) );
 		$form->appendChild( $group );
 
 		// Raw content button
 		if ( $this->getTree()->getSearch()->isCurrentFileValid()
-			&& is_file( $this->getTree()->getSearch()->getCurrentFile( false ) )
+		     && is_file( $this->getTree()->getSearch()->getCurrentFile( false ) )
 		)
 		{
 			// Button to show raw content
 			$query_string = http_build_query(
-				array(
-					'tmd_q' => $this->_tree->getSearch()->getSearchTerm(),
-					'tmd_f' => $this->_tree->getSearch()->getCurrentFile( true ),
-					'tmd_r' => 1,
+				array_merge(
+					$this->getOptions()->get( Opt::BASE_PARAMS ),
+					array( 'tmd_r' => 1 )
 				)
 			);
 

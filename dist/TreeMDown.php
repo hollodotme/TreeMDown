@@ -2,12 +2,15 @@
 /**
  * Main class for using TreeMDown
  *
- * @author hwoltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown;
 
 use hollodotme\TreeMDown\FileSystem\Search;
+use hollodotme\TreeMDown\Misc\DefaultOptions;
+use hollodotme\TreeMDown\Misc\Opt;
+use hollodotme\TreeMDown\Misc\Options;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 use hollodotme\TreeMDown\Rendering\HTMLTree;
 use hollodotme\TreeMDown\Utilities\FileEncoder;
@@ -19,6 +22,11 @@ use hollodotme\TreeMDown\Utilities\FileEncoder;
  */
 class TreeMDown
 {
+
+	/**
+	 * @var null|Options
+	 */
+	protected $_options = null;
 
 	/**
 	 * The Search instance
@@ -35,29 +43,11 @@ class TreeMDown
 	protected $_tree = null;
 
 	/**
-	 * The default file
+	 * The Page instance
 	 *
-	 * @var string
+	 * @var null|HTMLPage
 	 */
-	protected $_default_file = 'index.md';
-
-	/**
-	 * Page metadata
-	 *
-	 * @var array
-	 */
-	protected $_metadata = array(
-		'project_name'      => 'TreeMDown',
-		'short_description' => "[triː <'em> daʊn]",
-		'company_name'      => 'hollodotme',
-	);
-
-	/**
-	 * Github ribbon enabled?
-	 *
-	 * @var bool
-	 */
-	protected $_github_ribbon_enabled = false;
+	protected $_page = null;
 
 	/**
 	 * Constructor
@@ -66,14 +56,28 @@ class TreeMDown
 	 */
 	public function __construct( $root_dir = '.' )
 	{
-		// Init search
-		$this->_search = new Search( $root_dir, isset($_GET['tmd_q']) ? $_GET['tmd_q'] : '' );
-		$this->_search->setCurrentFile( isset($_GET['tmd_f']) ? $_GET['tmd_f'] : $this->_default_file );
-		$this->_search->setExcludePatterns( array('.*') );
-		$this->_search->setIncludePatterns( array('*.md', '*.markdown') );
+		$this->_options = new DefaultOptions();
+		$this->_options->set( Opt::DIR_ROOT, realpath( strval( $root_dir ) ) );
+	}
 
-		// Init tree
-		$this->_tree = new HTMLTree( $this->_search );
+	/**
+	 * Return the options
+	 *
+	 * @return Options
+	 */
+	public function getOptions()
+	{
+		return $this->_options;
+	}
+
+	/**
+	 * Set the options
+	 *
+	 * @param Options $options
+	 */
+	public function setOptions( Options $options )
+	{
+		$this->_options = $options;
 	}
 
 	/**
@@ -83,7 +87,7 @@ class TreeMDown
 	 */
 	public function setProjectName( $project_name )
 	{
-		$this->_metadata['project_name'] = strval( $project_name );
+		$this->_options->set( Opt::NAME_PROJECT, strval( $project_name ) );
 	}
 
 	/**
@@ -93,7 +97,7 @@ class TreeMDown
 	 */
 	public function getProjectName()
 	{
-		return $this->_metadata['project_name'];
+		return $this->_options->get( Opt::NAME_PROJECT );
 	}
 
 	/**
@@ -103,7 +107,7 @@ class TreeMDown
 	 */
 	public function setShortDescription( $short_description )
 	{
-		$this->_metadata['short_description'] = strval( $short_description );
+		$this->_options->set( Opt::PROJECT_ABSTRACT, strval( $short_description ) );
 	}
 
 	/**
@@ -113,7 +117,7 @@ class TreeMDown
 	 */
 	public function getShortDescription()
 	{
-		return $this->_metadata['short_description'];
+		return $this->_options->get( Opt::PROJECT_ABSTRACT );
 	}
 
 	/**
@@ -123,7 +127,7 @@ class TreeMDown
 	 */
 	public function setCompanyName( $company_name )
 	{
-		$this->_metadata['company_name'] = $company_name;
+		$this->_options->set( Opt::NAME_COMPANY, strval( $company_name ) );
 	}
 
 	/**
@@ -133,7 +137,7 @@ class TreeMDown
 	 */
 	public function getCompanyName()
 	{
-		return $this->_metadata['company_name'];
+		return $this->_options->get( Opt::NAME_COMPANY );
 	}
 
 	/**
@@ -143,7 +147,7 @@ class TreeMDown
 	 */
 	public function getDefaultFile()
 	{
-		return $this->_default_file;
+		return $this->_options->get( Opt::FILE_DEFAULT );
 	}
 
 	/**
@@ -153,9 +157,7 @@ class TreeMDown
 	 */
 	public function setDefaultFile( $default_file )
 	{
-		$this->_default_file = ltrim( trim( $default_file ), "\t\n\r\0\x0B\/" );
-
-		$this->_search->setCurrentFile( isset($_GET['tmd_f']) ? $_GET['tmd_f'] : $this->_default_file );
+		$this->_options->set( Opt::FILE_DEFAULT, ltrim( trim( $default_file ), "\t\n\r\0\x0B\/" ) );
 	}
 
 	/**
@@ -163,7 +165,7 @@ class TreeMDown
 	 */
 	public function hideEmptyFolders()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() | HTMLTree::EXCLUDE_EMPTY_FOLDERS );
+		$this->_options->set( Opt::EMPTY_FOLDERS_HIDDEN, true );
 	}
 
 	/**
@@ -171,7 +173,7 @@ class TreeMDown
 	 */
 	public function showEmptyFolders()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() & ~HTMLTree::EXCLUDE_EMPTY_FOLDERS );
+		$this->_options->set( Opt::EMPTY_FOLDERS_HIDDEN, false );
 	}
 
 	/**
@@ -179,7 +181,7 @@ class TreeMDown
 	 */
 	public function enablePrettyNames()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() | HTMLTree::PRETTIFY_NAMES );
+		$this->_options->set( Opt::NAMES_PRETTYFIED, true );
 	}
 
 	/**
@@ -187,7 +189,7 @@ class TreeMDown
 	 */
 	public function disablePrettyNames()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() & ~HTMLTree::PRETTIFY_NAMES );
+		$this->_options->set( Opt::NAMES_PRETTYFIED, false );
 	}
 
 	/**
@@ -195,7 +197,7 @@ class TreeMDown
 	 */
 	public function hideFilenameSuffix()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() | HTMLTree::HIDE_FILENAME_SUFFIX );
+		$this->_options->set( Opt::FILENAME_SUFFIX_HIDDEN, true );
 	}
 
 	/**
@@ -203,7 +205,7 @@ class TreeMDown
 	 */
 	public function showFilenameSuffix()
 	{
-		$this->_tree->setFlags( $this->_tree->getFlags() & ~HTMLTree::HIDE_FILENAME_SUFFIX );
+		$this->_options->set( Opt::FILENAME_SUFFIX_HIDDEN, false );
 	}
 
 	/**
@@ -215,7 +217,7 @@ class TreeMDown
 	 */
 	public function setIncludePatterns( array $patterns )
 	{
-		$this->_search->setIncludePatterns( $patterns );
+		$this->_options->set( Opt::PATH_INCLUDE_PATTERNS, $patterns );
 	}
 
 	/**
@@ -225,7 +227,7 @@ class TreeMDown
 	 */
 	public function getIncludePatterns()
 	{
-		return $this->_search->getIncludePatterns();
+		return $this->_options->get( Opt::PATH_INCLUDE_PATTERNS );
 	}
 
 	/**
@@ -237,7 +239,7 @@ class TreeMDown
 	 */
 	public function setExcludePatterns( array $patterns )
 	{
-		$this->_search->setExcludePatterns( $patterns );
+		$this->_options->set( Opt::PATH_EXCLUDE_PATTERNS, $patterns );
 	}
 
 	/**
@@ -247,7 +249,7 @@ class TreeMDown
 	 */
 	public function getExcludePatterns()
 	{
-		return $this->_search->getExcludePatterns();
+		return $this->_options->get( Opt::PATH_EXCLUDE_PATTERNS );
 	}
 
 	/**
@@ -255,7 +257,7 @@ class TreeMDown
 	 */
 	public function enableGithubRibbon()
 	{
-		$this->_github_ribbon_enabled = true;
+		$this->_options->set( Opt::GITHUB_RIBBON_ENABLED, true );
 	}
 
 	/**
@@ -263,7 +265,62 @@ class TreeMDown
 	 */
 	public function disableGithubRibbon()
 	{
-		$this->_github_ribbon_enabled = false;
+		$this->_options->set( Opt::GITHUB_RIBBON_ENABLED, false );
+	}
+
+	protected function _prepareOptions()
+	{
+		// Current file
+		if ( isset($_GET['tmd_f']) && !empty($_GET['tmd_f']) )
+		{
+			$current_file = trim( $_GET['tmd_f'], "\t\r\n\0\x0B/" );
+		}
+		else
+		{
+			$current_file = $this->_options->get( Opt::FILE_DEFAULT );
+		}
+
+		$this->_options->set(
+			Opt::FILE_CURRENT,
+			realpath( $this->_options->get( Opt::DIR_ROOT ) . DIRECTORY_SEPARATOR . $current_file )
+		);
+
+		// Output type
+		$output_type = Opt::OUTPUT_TYPE_DOM;
+		if ( isset($_GET['tmd_r']) && !empty($_GET['tmd_r']) )
+		{
+			$output_type = Opt::OUTPUT_TYPE_RAW;
+		}
+
+		$this->_options->set( Opt::OUTPUT_TYPE, $output_type );
+
+		// Search term
+		$this->_options->set( Opt::SEARCH_TERM, isset($_GET['tmd_q']) ? strval( $_GET['tmd_q'] ) : '' );
+
+		// Base params
+		$base_params = array(
+			'tmd_f' => $current_file,
+			'tmd_q' => $this->_options->get( Opt::SEARCH_TERM ),
+		);
+
+		$this->_options->set( Opt::BASE_PARAMS, $base_params );
+	}
+
+	protected function _prepareSearch()
+	{
+		// Init search
+		$this->_search = new Search( $this->_options );
+	}
+
+	protected function _prepareTree()
+	{
+		// Init tree
+		$this->_tree = new HTMLTree( $this->_search );
+	}
+
+	protected function _preparePage()
+	{
+		$this->_page = new HTMLPage( $this->_tree );
 	}
 
 	public function getDOMDocument()
@@ -275,39 +332,51 @@ class TreeMDown
 	 *
 	 * @param array $headers Output headers
 	 *
-	 * @return string
+	 * @return string|\DOMDocument
 	 */
 	public function getOutput( array &$headers = array() )
 	{
-		// Raw display of current file?
-		if ( isset($_GET['tmd_r']) && !empty($_GET['tmd_r']) )
+		$this->_prepareOptions();
+		$this->_prepareSearch();
+		$this->_prepareTree();
+
+		// Raw output?
+		switch ( $this->_options->get( Opt::OUTPUT_TYPE ) )
 		{
-			$headers['Content-type'] = 'text/plain; charset=UTF-8';
-
-			$current_file = $this->_search->getCurrentFile( false );
-			if ( $this->_search->isCurrentFileValid() && is_file( $current_file ) )
+			case Opt::OUTPUT_TYPE_RAW :
 			{
-				$file_encoder = new FileEncoder( $current_file );
-				$output       = $file_encoder->getFileContents();
+				$headers['Content-type'] = 'text/plain; charset=UTF-8';
+
+				$current_file = $this->_search->getCurrentFile( false );
+
+				if ( $this->_search->isCurrentFileValid() && is_file( $current_file ) )
+				{
+					$file_encoder = new FileEncoder( $current_file );
+					$output       = $file_encoder->getFileContents();
+				}
+				else
+				{
+					$output = 'Your current selection is not valid.';
+				}
+
+				break;
 			}
-			else
+			case Opt::OUTPUT_TYPE_DOM:
 			{
-				$output = 'Your current selection is not valid.';
+				$headers['Content-type'] = 'text/html; charset=UTF-8';
+
+				$this->_tree->buildTree();
+
+				$this->_preparePage();
+
+				$output = $this->_page->getDOMDocument();
+
+				break;
 			}
-		}
-		else
-		{
-			$headers['Content-type'] = 'text/html; charset=UTF-8';
-
-			$this->_tree->buildTree();
-
-			$page = new HTMLPage( $this->_tree );
-			$page->setProjectName( $this->getProjectName() );
-			$page->setShortDescription( $this->getShortDescription() );
-			$page->setCompany( $this->getCompanyName() );
-			$page->enableGithubRibbon( $this->_github_ribbon_enabled );
-
-			$output = $page->getDOMDocument();
+			default:
+				{
+				$output = 'No valid output type set.';
+				}
 		}
 
 		return $output;

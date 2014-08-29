@@ -2,11 +2,12 @@
 /**
  * Footer section
  *
- * @author hwoltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
+use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
@@ -40,8 +41,8 @@ class Footer extends AbstractSection
 			array( 'class' => 'pull-right small text-muted' ),
 			sprintf(
 				'%s by %s %s',
-				$this->getMetaData( HTMLPage::META_PROJECT_NAME ),
-				$this->getMetaData( HTMLPage::META_COMPANY ),
+				$this->getOptions()->get( Opt::NAME_PROJECT ),
+				$this->getOptions()->get( Opt::NAME_COMPANY ),
 				date( 'Y' )
 			)
 		);

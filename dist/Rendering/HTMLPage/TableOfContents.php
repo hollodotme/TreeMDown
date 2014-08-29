@@ -1,7 +1,7 @@
 <?php
 /**
  * TOC section
- * @author hwoltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;

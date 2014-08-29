@@ -1,7 +1,7 @@
 <?php
 /**
  * File encoder
- * @author hwoltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Utilities;

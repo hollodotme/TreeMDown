@@ -8,6 +8,7 @@
 namespace hollodotme\TreeMDown\Rendering;
 
 use hollodotme\TreeMDown\FileSystem;
+use hollodotme\TreeMDown\Misc\Opt;
 
 /**
  * Class HTMLLeaf
@@ -17,6 +18,8 @@ use hollodotme\TreeMDown\FileSystem;
 class HTMLLeaf extends FileSystem\Leaf
 {
 	/**
+	 * Return the output
+	 *
 	 * @return \DOMElement
 	 */
 	public function getOutput()
@@ -33,9 +36,9 @@ class HTMLLeaf extends FileSystem\Leaf
 			$a = $dom->createElement( 'a' );
 
 			$url_query = http_build_query(
-				array(
-					'tmd_q' => $this->_search->getSearchTerm(),
-					'tmd_f' => $this->getFilePath( true ),
+				array_merge(
+					$this->getOptions()->get( Opt::BASE_PARAMS ),
+					array( 'tmd_f' => $this->getFilePath( true ) )
 				)
 			);
 

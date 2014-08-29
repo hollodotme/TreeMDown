@@ -7,6 +7,9 @@
 
 namespace hollodotme\TreeMDown\Rendering;
 
+use hollodotme\TreeMDown\Misc\Opt;
+use hollodotme\TreeMDown\Misc\Options;
+
 /**
  * Class HTMLPage
  *
@@ -14,14 +17,20 @@ namespace hollodotme\TreeMDown\Rendering;
  */
 class HTMLPage
 {
-	const ASSET_CSS = 'asset_css';
-	const ASSET_FONT = 'asset_font';
-	const ASSET_JS = 'asset_js';
-	const ASSET_IMG = 'asset_img';
+
+	const ASSET_CSS         = 'asset_css';
+
+	const ASSET_FONT        = 'asset_font';
+
+	const ASSET_JS          = 'asset_js';
+
+	const ASSET_IMG         = 'asset_img';
 
 	const META_PROJECT_NAME = 'meta_project_name';
-	const META_ABSTRACT = 'meta_abstract';
-	const META_COMPANY = 'meta_company';
+
+	const META_ABSTRACT     = 'meta_abstract';
+
+	const META_COMPANY      = 'meta_company';
 
 	/**
 	 * Tree instance
@@ -36,34 +45,6 @@ class HTMLPage
 	 * @var \DOMDocument
 	 */
 	protected $_dom;
-
-	/**
-	 * User defined project name
-	 *
-	 * @var string
-	 */
-	protected $_project_name = 'Project name';
-
-	/**
-	 * User defined short description
-	 *
-	 * @var string
-	 */
-	protected $_short_description = 'Short description';
-
-	/**
-	 * User defined company
-	 *
-	 * @var string
-	 */
-	protected $_company = 'Company';
-
-	/**
-	 * Github ribbon enabled?
-	 *
-	 * @var bool
-	 */
-	protected $_github_ribbon_enabled = false;
 
 	/**
 	 * Constructor
@@ -82,47 +63,18 @@ class HTMLPage
 	}
 
 	/**
-	 * Set the company
+	 * Return the options (wrapper)
 	 *
-	 * @param string $company
+	 * @return Options
 	 */
-	public function setCompany( $company )
+	public function getOptions()
 	{
-		$this->_company = $company;
-	}
-
-	/**
-	 * Set the project name
-	 *
-	 * @param string $project_name
-	 */
-	public function setProjectName( $project_name )
-	{
-		$this->_project_name = $project_name;
-	}
-
-	/**
-	 * Set the short description
-	 *
-	 * @param string $short_description
-	 */
-	public function setShortDescription( $short_description )
-	{
-		$this->_short_description = $short_description;
-	}
-
-	/**
-	 * Enable/disable github ribbon
-	 *
-	 * @param bool $enable
-	 */
-	public function enableGithubRibbon( $enable )
-	{
-		$this->_github_ribbon_enabled = $enable;
+		return $this->_tree->getOptions();
 	}
 
 	/**
 	 * Return the rendered DOMDocument
+	 *
 	 * @return \DOMDocument
 	 */
 	public function getDOMDocument()
@@ -143,30 +95,19 @@ class HTMLPage
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
 
-		if ( $this->_github_ribbon_enabled )
+		if ( $this->getOptions()->get( Opt::GITHUB_RIBBON_ENABLED ) )
 		{
 			$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-fork-ribbon.min.css' );
 		}
 
-		// Add meta data
-		$head->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
-		$head->setMetaData( self::META_ABSTRACT, $this->_short_description );
-		$head->setMetaData( self::META_COMPANY, $this->_company );
-
 		// Init body section
 		$body = new HTMLPage\Body( $this->_dom->documentElement, $this->_tree );
-		$body->enableGithubRibbon( $this->_github_ribbon_enabled );
 
 		// Add script assets
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.1.min.js' );
-
-		// Add meta data
-		$body->setMetaData( self::META_PROJECT_NAME, $this->_project_name );
-		$body->setMetaData( self::META_ABSTRACT, $this->_short_description );
-		$body->setMetaData( self::META_COMPANY, $this->_company );
 
 		// Prepare sections
 		$head->prepare();

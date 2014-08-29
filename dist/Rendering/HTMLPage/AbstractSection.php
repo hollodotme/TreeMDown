@@ -2,11 +2,12 @@
 /**
  * Abstract section of HTMLPage
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
+use hollodotme\TreeMDown\Misc\Options;
 use hollodotme\TreeMDown\Rendering\HTMLTree;
 
 /**
@@ -16,6 +17,7 @@ use hollodotme\TreeMDown\Rendering\HTMLTree;
  */
 abstract class AbstractSection
 {
+
 	/**
 	 * Assets
 	 *
@@ -47,8 +49,8 @@ abstract class AbstractSection
 	/**
 	 * Constructor
 	 *
-	 * @param \DOMElement  $container
-	 * @param HTMLTree     $tree
+	 * @param \DOMElement $container
+	 * @param HTMLTree    $tree
 	 */
 	public function __construct( \DOMElement $container, HTMLTree $tree )
 	{
@@ -94,7 +96,7 @@ abstract class AbstractSection
 	 */
 	public function addAsset( $type, $asset )
 	{
-		$this->_assets[$type][] = $asset;
+		$this->_assets[ $type ][] = $asset;
 	}
 
 	/**
@@ -123,50 +125,20 @@ abstract class AbstractSection
 		}
 		elseif ( array_key_exists( $type, $this->_assets ) )
 		{
-			$assets = $this->_assets[$type];
+			$assets = $this->_assets[ $type ];
 		}
 
 		return $assets;
 	}
 
 	/**
-	 * Set meta data of type with value
+	 * Return the options (wrapper)
 	 *
-	 * @param string $type
-	 * @param string $value
+	 * @return Options
 	 */
-	public function setMetaData( $type, $value )
+	public function getOptions()
 	{
-		$this->_meta_data[$type] = $value;
-	}
-
-	/**
-	 * Set a whole meta data array
-	 *
-	 * @param array $meta_data
-	 */
-	public function setMetaDataArray( array $meta_data )
-	{
-		$this->_meta_data = $meta_data;
-	}
-
-	/**
-	 * Return meta data of type
-	 *
-	 * @param string $type
-	 *
-	 * @return null|string
-	 */
-	public function getMetaData( $type )
-	{
-		$meta_data = null;
-
-		if ( array_key_exists( $type, $this->_meta_data ) )
-		{
-			$meta_data = $this->_meta_data[$type];
-		}
-
-		return $meta_data;
+		return $this->_tree->getOptions();
 	}
 
 	/**

@@ -7,6 +7,9 @@
 
 namespace hollodotme\TreeMDown\FileSystem;
 
+use hollodotme\TreeMDown\Misc\Opt;
+use hollodotme\TreeMDown\Misc\Options;
+
 /**
  * Class Entry
  *
@@ -14,27 +17,6 @@ namespace hollodotme\TreeMDown\FileSystem;
  */
 class Entry
 {
-	/**
-	 * Flag: Hide empty folders
-	 */
-	const EXCLUDE_EMPTY_FOLDERS = 1;
-
-	/**
-	 * Hide filename suffix
-	 */
-	const HIDE_FILENAME_SUFFIX = 2;
-
-	/**
-	 * Flag: Prettify directory and file names
-	 */
-	const PRETTIFY_NAMES = 4;
-
-	/**
-	 * Flags
-	 *
-	 * @var int
-	 */
-	protected $_flags = 0;
 
 	/**
 	 * Full path to file/folder
@@ -92,27 +74,7 @@ class Entry
 	}
 
 	/**
-	 * Set the flags
-	 *
-	 * @param int $flags Flags
-	 */
-	public function setFlags( $flags )
-	{
-		$this->_flags = $flags;
-	}
-
-	/**
-	 * Return the Flags
-	 *
-	 * @return int
-	 */
-	public function getFlags()
-	{
-		return $this->_flags;
-	}
-
-	/**
-	 * Rwturn whether the entry is valid
+	 * Return whether the entry is valid
 	 *
 	 * @return bool
 	 */
@@ -124,7 +86,7 @@ class Entry
 		{
 			if ( !empty($this->_filepath) )
 			{
-				if ( file_exists( $this->_filepath ) )
+				if ( !$this->_search->isPathIgnored( $this->_filepath ) && file_exists( $this->_filepath ) )
 				{
 					$is_valid = true;
 				}
@@ -145,6 +107,16 @@ class Entry
 	}
 
 	/**
+	 * Return the options (wrapper)
+	 *
+	 * @return Options
+	 */
+	public function getOptions()
+	{
+		return $this->_search->getOptions();
+	}
+
+	/**
 	 * Return the filename
 	 *
 	 * @return string
@@ -156,6 +128,7 @@ class Entry
 
 	/**
 	 * Return the display filename
+	 *
 	 * @return string
 	 */
 	public function getDisplayFilename()
@@ -163,13 +136,13 @@ class Entry
 		$display_filename = $this->_filename;
 
 		// Hide suffix
-		if ( $this->_flags & self::HIDE_FILENAME_SUFFIX )
+		if ( $this->getOptions()->get( Opt::FILENAME_SUFFIX_HIDDEN ) == true )
 		{
 			$display_filename = preg_replace( "#^(.+)\.[^\.]+$#", '$1', $display_filename );
 		}
 
 		// Prettify names?
-		if ( $this->_flags & self::PRETTIFY_NAMES )
+		if ( $this->getOptions()->get( Opt::NAMES_PRETTYFIED ) == true )
 		{
 			$display_filename = preg_replace( "#[\-_]#", ' ', $display_filename );
 		}

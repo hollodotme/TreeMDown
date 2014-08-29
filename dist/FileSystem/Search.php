@@ -7,6 +7,9 @@
 
 namespace hollodotme\TreeMDown\FileSystem;
 
+use hollodotme\TreeMDown\Misc\Opt;
+use hollodotme\TreeMDown\Misc\Options;
+
 /**
  * Class Search
  *
@@ -16,46 +19,10 @@ class Search
 {
 
 	/**
-	 * Root directory
-	 *
-	 * @var string
+	 * The Options
+	 * @var null|Options
 	 */
-	protected $_root_dir = '';
-
-	/**
-	 * Search term
-	 *
-	 * @var string
-	 */
-	protected $_search_term = '';
-
-	/**
-	 * Patterns to include in search
-	 *
-	 * @var array
-	 */
-	protected $_include_patterns = array();
-
-	/**
-	 * Patterns to exclude from search
-	 *
-	 * @var array
-	 */
-	protected $_exclude_patterns = array();
-
-	/**
-	 * Current file
-	 *
-	 * @var string
-	 */
-	protected $_current_file = '';
-
-	/**
-	 * Current file is valid?
-	 *
-	 * @var bool
-	 */
-	protected $_current_file_valid = true;
+	protected $_options = null;
 
 	/**
 	 * Paths with occurences of search term
@@ -67,13 +34,21 @@ class Search
 	/**
 	 * Constructor
 	 *
-	 * @param string $root_dir    Root directory
-	 * @param string $search_term Search term
+	 * @param Options $options
 	 */
-	public function __construct( $root_dir, $search_term )
+	public function __construct( Options $options )
 	{
-		$this->_root_dir    = realpath( $root_dir );
-		$this->_search_term = $search_term;
+		$this->_options = $options;
+	}
+
+	/**
+	 * Return the Options
+	 *
+	 * @return Options
+	 */
+	public function getOptions()
+	{
+		return $this->_options;
 	}
 
 	/**
@@ -83,7 +58,9 @@ class Search
 	 */
 	public function isValid()
 	{
-		return !empty($this->_root_dir);
+		$root_dir = $this->getRootDir();
+
+		return !empty($root_dir);
 	}
 
 	/**
@@ -93,7 +70,9 @@ class Search
 	 */
 	public function isActive()
 	{
-		return !empty($this->_search_term);
+		$search_term = $this->getSearchTerm();
+
+		return !empty($search_term);
 	}
 
 	/**
@@ -103,7 +82,7 @@ class Search
 	 */
 	public function getRootDir()
 	{
-		return $this->_root_dir;
+		return $this->getOptions()->get( Opt::DIR_ROOT );
 	}
 
 	/**
@@ -113,78 +92,7 @@ class Search
 	 */
 	public function getSearchTerm()
 	{
-		return $this->_search_term;
-	}
-
-	/**
-	 * Return the exclude patterns
-	 *
-	 * @return array
-	 */
-	public function getExcludePatterns()
-	{
-		return $this->_exclude_patterns;
-	}
-
-	/**
-	 * Set exclude patterns
-	 *
-	 * @param array $exclude_patterns
-	 */
-	public function setExcludePatterns( $exclude_patterns )
-	{
-		$this->_exclude_patterns = $exclude_patterns;
-	}
-
-	/**
-	 * Return the include patterns
-	 *
-	 * @return array
-	 */
-	public function getIncludePatterns()
-	{
-		return $this->_include_patterns;
-	}
-
-	/**
-	 * Set include pattern
-	 *
-	 * @param array $include_patterns
-	 */
-	public function setIncludePatterns( array $include_patterns )
-	{
-		$this->_include_patterns = $include_patterns;
-	}
-
-	/**
-	 * Set the current filepath
-	 * Must be relative to the root directory
-	 *
-	 * @param string $current_file filepath
-	 */
-	public function setCurrentFile( $current_file )
-	{
-		$current_file = trim( $current_file, "\t\r\n\0\x0B/" );
-		$current_file = realpath( $this->_root_dir . DIRECTORY_SEPARATOR . $current_file );
-
-		if ( !empty($current_file) )
-		{
-			$root_dir = preg_quote( $this->_root_dir, '#' );
-			if ( !preg_match( "#^{$root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", $current_file ) )
-			{
-				$this->_current_file_valid = false;
-				$this->_current_file       = '';
-			}
-			else
-			{
-				$this->_current_file_valid = true;
-				$this->_current_file       = $current_file;
-			}
-		}
-		else
-		{
-			$this->_current_file_valid = false;
-		}
+		return $this->getOptions()->get( Opt::SEARCH_TERM );
 	}
 
 	/**
@@ -196,15 +104,18 @@ class Search
 	{
 		$is_valid = true;
 
-		if ( empty($this->_current_file) )
+		$current_file = $this->_options->get( Opt::FILE_CURRENT );
+		$root_dir     = $this->_options->get( Opt::DIR_ROOT );
+
+		if ( empty($current_file) )
 		{
 			$is_valid = false;
 		}
-		elseif ( !$this->_current_file_valid )
+		elseif ( !preg_match( "#^{$root_dir}/#", $current_file ) )
 		{
 			$is_valid = false;
 		}
-		elseif ( $this->isPathIgnored( $this->_current_file ) )
+		elseif ( $this->isPathIgnored( $current_file ) )
 		{
 			$is_valid = false;
 		}
@@ -223,18 +134,17 @@ class Search
 	{
 		$file = '';
 
+		$current_file = $this->_options->get( Opt::FILE_CURRENT );
+
 		if ( $this->isCurrentFileValid() )
 		{
 			if ( !empty($strip_root_dir) )
 			{
-				$file = preg_replace(
-					"#^{$this->_root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", '',
-					$this->_current_file
-				);
+				$file = preg_replace( "#^{$this->getRootDir()}(" . DIRECTORY_SEPARATOR . "|$)#", '', $current_file );
 			}
 			else
 			{
-				$file = $this->_current_file;
+				$file = $current_file;
 			}
 		}
 
@@ -256,7 +166,7 @@ class Search
 		if ( is_file( $filepath ) )
 		{
 			$patterns = array();
-			foreach ( $this->_include_patterns as $include )
+			foreach ( $this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS ) as $include )
 			{
 				$patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
 			}
@@ -269,7 +179,7 @@ class Search
 		}
 
 		$patterns = array();
-		foreach ( $this->_exclude_patterns as $exclude )
+		foreach ( $this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS ) as $exclude )
 		{
 			$patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
 		}
@@ -290,25 +200,25 @@ class Search
 	 */
 	public function getPathsWithOccurences()
 	{
-		$key = md5( $this->_root_dir . '::' . $this->_search_term );
+		$key = md5( $this->getRootDir() . '::' . $this->getSearchTerm() );
 
 		if ( !array_key_exists( $key, $this->_paths_with_occurences ) )
 		{
 			$this->_paths_with_occurences[ $key ] = array();
 
-			if ( file_exists( $this->_root_dir ) && !empty($this->_search_term) )
+			if ( file_exists( $this->getRootDir() ) && !empty($this->getSearchTerm()) )
 			{
-				$search_term = escapeshellarg( addcslashes( $this->_search_term, '-' ) );
-				$root_dir    = escapeshellarg( $this->_root_dir );
+				$search_term = escapeshellarg( addcslashes( $this->getSearchTerm(), '-' ) );
+				$root_dir    = escapeshellarg( $this->getRootDir() );
 
 				$excludes = array();
-				foreach ( $this->_exclude_patterns as $exclude )
+				foreach ( $this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS ) as $exclude )
 				{
 					$excludes[] = '--exclude=' . escapeshellarg( $exclude );
 				}
 
 				$includes = array();
-				foreach ( $this->_include_patterns as $include )
+				foreach ( $this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS ) as $include )
 				{
 					$includes[] = '--include=' . escapeshellarg( $include );
 				}

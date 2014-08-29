@@ -2,11 +2,12 @@
 /**
  * Header of HTMLPage
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
+use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
@@ -78,7 +79,7 @@ class Head extends AbstractSection
 		$head = $this->getDom()->createElement( 'head' );
 
 		// Title
-		$title = $this->getMetaData( HTMLPage::META_PROJECT_NAME );
+		$title = $this->getOptions()->get( Opt::NAME_PROJECT );
 		if ( $tree->getSearch()->isCurrentFileValid() )
 		{
 			$title = basename( $tree->getSearch()->getCurrentFile() ) . ' - ' . $title;
@@ -92,7 +93,7 @@ class Head extends AbstractSection
 			$this->getElementWithAttributes(
 				'meta', array(
 					'name'    => 'description',
-					'content' => $this->getMetaData( HTMLPage::META_ABSTRACT ),
+					'content' => $this->getOptions()->get( Opt::PROJECT_ABSTRACT ),
 				)
 			)
 		);

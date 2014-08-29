@@ -2,7 +2,7 @@
 /**
  * Body of HTMLPage
  *
- * @author h.woltersdorf
+ * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
@@ -96,7 +96,6 @@ class Body extends AbstractSection
 
 		// Add header nav section
 		$header = new Header( $body, $this->_tree );
-		$header->setMetaDataArray( $this->_meta_data );
 		$header->prepare();
 		$header->addNodes();
 
@@ -135,7 +134,6 @@ class Body extends AbstractSection
 			$row->appendChild( $toc_column );
 
 			$toc = new TableOfContents( $toc_column, $this->_tree );
-			$toc->setMetaDataArray( $this->_meta_data );
 			$toc->setToc( $this->_toc );
 
 			$toc->prepare();
@@ -144,7 +142,6 @@ class Body extends AbstractSection
 			if ( !is_null( $this->_tof ) )
 			{
 				$tof = new TableOfFigures( $toc_column, $this->_tree );
-				$tof->setMetaDataArray( $this->_meta_data );
 				$tof->setTof( $this->_tof );
 
 				$tof->prepare();
@@ -165,7 +162,6 @@ class Body extends AbstractSection
 			$row->appendChild( $tof_column );
 
 			$tof = new TableOfFigures( $tof_column, $this->_tree );
-			$tof->setMetaDataArray( $this->_meta_data );
 			$tof->setTof( $this->_tof );
 
 			$tof->prepare();
@@ -181,7 +177,6 @@ class Body extends AbstractSection
 
 		// Add sidebar section
 		$sidebar = new Sidebar( $sidebar_column, $this->_tree );
-		$sidebar->setMetaDataArray( $this->_meta_data );
 		$sidebar->prepare();
 		$sidebar->addNodes();
 
@@ -195,7 +190,6 @@ class Body extends AbstractSection
 
 		// Add content section
 		$content = new Content( $content_column, $this->_tree );
-		$content->setMetaDataArray( $this->_meta_data );
 		$content->setUserMessages( $this->_user_messages );
 		if ( !is_null( $this->_parsed_markdown ) )
 		{
@@ -206,13 +200,11 @@ class Body extends AbstractSection
 
 		// Add footer section
 		$footer = new Footer( $body, $this->_tree );
-		$footer->setMetaDataArray( $this->_meta_data );
 		$footer->prepare();
 		$footer->addNodes();
 
 		// Add scripts section
 		$scripts = new Scripts( $body, $this->_tree );
-		$scripts->setMetaDataArray( $this->_meta_data );
 		$scripts->setAssetsArray( $this->_assets );
 		$scripts->prepare();
 		$scripts->addNodes();
