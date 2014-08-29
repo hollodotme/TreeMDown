@@ -20,6 +20,7 @@ class Search
 
 	/**
 	 * The Options
+	 *
 	 * @var null|Options
 	 */
 	protected $_options = null;
@@ -205,10 +206,11 @@ class Search
 		if ( !array_key_exists( $key, $this->_paths_with_occurences ) )
 		{
 			$this->_paths_with_occurences[ $key ] = array();
+			$search_term                          = $this->getSearchTerm();
 
-			if ( file_exists( $this->getRootDir() ) && !empty($this->getSearchTerm()) )
+			if ( file_exists( $this->getRootDir() ) && !empty($search_term) )
 			{
-				$search_term = escapeshellarg( addcslashes( $this->getSearchTerm(), '-' ) );
+				$search_term = escapeshellarg( addcslashes( $search_term, '-' ) );
 				$root_dir    = escapeshellarg( $this->getRootDir() );
 
 				$excludes = array();
