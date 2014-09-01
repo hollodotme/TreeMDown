@@ -6,6 +6,12 @@
 
 ![treemdown](https://cloud.githubusercontent.com/assets/1557839/3932639/def59cf8-246d-11e4-906f-b715e61f58b8.png)
 
+## News
+
+You like TreeMDown and you are interested in browsing multiple trees of markdown files?
+
+> Check out [TreeMDown-Multi](https://github.com/TreeMDown-Multi)! (Live demo coming soon.)
+
 ## Requirements / Dependencies
 
  * PHP >= 5.3
