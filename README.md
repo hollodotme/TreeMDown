@@ -10,7 +10,8 @@
 
 You like TreeMDown and you are interested in browsing multiple trees of markdown files?
 
-> Check out [TreeMDown-Multi](https://github.com/hollodotme/TreeMDown-Multi)! (Live demo coming soon.)
+> Check out [TreeMDown-Multi](https://github.com/hollodotme/TreeMDown-Multi)!
+> [Live demo is available here.](http://hollo.me/treemdown-multi/)
 
 ## Requirements / Dependencies
 
