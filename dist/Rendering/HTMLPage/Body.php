@@ -7,6 +7,7 @@
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
+use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 use hollodotme\TreeMDown\Utilities\FileEncoder;
 
@@ -45,23 +46,6 @@ class Body extends AbstractSection
 	 * @var array
 	 */
 	protected $_user_messages = array();
-
-	/**
-	 * Github ribbon enabled?
-	 *
-	 * @var bool
-	 */
-	protected $_github_ribbon_enabled = false;
-
-	/**
-	 * Enable/disable github ribbon
-	 *
-	 * @param bool $enable
-	 */
-	public function enableGithubRibbon( $enable )
-	{
-		$this->_github_ribbon_enabled = $enable;
-	}
 
 	/**
 	 * Prepare the content
@@ -182,7 +166,7 @@ class Body extends AbstractSection
 		$sidebar->addNodes();
 
 		// Add GitHub ribbon?
-		if ( $this->_github_ribbon_enabled )
+		if ( $this->getOptions()->get( Opt::GITHUB_RIBBON_ENABLED ) )
 		{
 			$github_ribbon = new GithubRibbon( $sidebar_column, $this->_tree );
 			$github_ribbon->prepare();
