@@ -22,6 +22,8 @@ class Scripts extends AbstractSection
 		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $js_file )
 		{
 			$file_content = file_get_contents( $js_file );
+			$file_content = str_replace( '</script>', '<\/script>', $file_content );
+
 			$elem         = $this->getElementWithAttributes( 'script', array('type' => 'text/javascript') );
 			$elem->appendChild( $this->getDom()->createCDATASection( $file_content ) );
 			$this->getContainer()->appendChild( $elem );

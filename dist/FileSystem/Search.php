@@ -166,27 +166,27 @@ class Search
 
 		if ( is_file( $filepath ) )
 		{
-			$patterns = array();
+			$include_patterns = array();
 			foreach ( $this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS ) as $include )
 			{
-				$patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
+				$include_patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
 			}
 
-			$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
-			if ( !preg_match( $pattern, $filename ) )
+			$include_pattern = sprintf( "#^(%s)$#i", join( '|', $include_patterns ) );
+			if ( !preg_match( $include_pattern, $filename ) )
 			{
 				$is_ignored = true;
 			}
 		}
 
-		$patterns = array();
+		$exclude_patterns = array();
 		foreach ( $this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS ) as $exclude )
 		{
-			$patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
+			$exclude_patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
 		}
 
-		$pattern = sprintf( "#^(%s)$#i", join( '|', $patterns ) );
-		if ( preg_match( $pattern, $filename ) )
+		$exclude_pattern = sprintf( "#^(%s)$#i", join( '|', $exclude_patterns ) );
+		if ( preg_match( $exclude_pattern, $filename ) )
 		{
 			$is_ignored = true;
 		}

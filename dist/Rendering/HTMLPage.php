@@ -92,6 +92,7 @@ class HTMLPage
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/github-markdown.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-default.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/highlightjs-github.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
 
@@ -107,7 +108,7 @@ class HTMLPage
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js' );
-		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.1.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/highlight-8.3.min.js' );
 
 		// Prepare sections
 		$head->prepare();

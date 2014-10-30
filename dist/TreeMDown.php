@@ -289,10 +289,13 @@ class TreeMDown
 		);
 
 		// Output type
-		$output_type = Opt::OUTPUT_TYPE_DOM;
 		if ( isset($_GET['tmd_r']) && !empty($_GET['tmd_r']) )
 		{
 			$output_type = Opt::OUTPUT_TYPE_RAW;
+		}
+		else
+		{
+			$output_type = Opt::OUTPUT_TYPE_DOM;
 		}
 
 		$this->_options->set( Opt::OUTPUT_TYPE, $output_type );

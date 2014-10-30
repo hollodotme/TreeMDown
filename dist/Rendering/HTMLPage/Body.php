@@ -10,6 +10,7 @@ namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Rendering\HTMLPage;
 use hollodotme\TreeMDown\Utilities\FileEncoder;
+use hollodotme\TreeMDown\Utilities\Linker;
 
 /**
  * Class Body
@@ -267,6 +268,8 @@ class Body extends AbstractSection
 					}
 
 					$this->_parsed_markdown = $dom->documentElement;
+
+					$this->modifyInternalLinks();
 				}
 				else
 				{
@@ -291,6 +294,19 @@ class Body extends AbstractSection
 				'title'   => '404',
 				'message' => 'The file you requested does not exist or is not readable.',
 			);
+		}
+	}
+
+	private function modifyInternalLinks()
+	{
+		if ( !is_null( $this->_parsed_markdown ) )
+		{
+			$linker = new Linker( $this->_tree->getSearch() );
+
+			foreach ( $linker->getInternalLinks( $this->_parsed_markdown ) as $internal_link )
+			{
+				$linker->modifyInternalLink( $internal_link );
+			}
 		}
 	}
 

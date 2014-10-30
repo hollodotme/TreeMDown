@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "erusev/parsedown",
-            "version": "1.0.1",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/erusev/parsedown.git",
-                "reference": "d24439ada0704948deef0d3eda2ea20fd8db1747"
+                "reference": "da5d75e97e1ed19e57bd54fa6cb595a6a0879a67"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/erusev/parsedown/zipball/d24439ada0704948deef0d3eda2ea20fd8db1747",
-                "reference": "d24439ada0704948deef0d3eda2ea20fd8db1747",
+                "url": "https://api.github.com/repos/erusev/parsedown/zipball/da5d75e97e1ed19e57bd54fa6cb595a6a0879a67",
+                "reference": "da5d75e97e1ed19e57bd54fa6cb595a6a0879a67",
                 "shasum": ""
             },
             "type": "library",
@@ -43,7 +43,7 @@
                 "markdown",
                 "parser"
             ],
-            "time": "2014-05-21 20:20:46"
+            "time": "2014-10-29 20:29:46"
         },
         {
             "name": "erusev/parsedown-extra",
@@ -90,21 +90,13 @@
             "time": "2014-06-18 23:58:16"
         }
     ],
-    "packages-dev": [
-
-    ],
-    "aliases": [
-
-    ],
+    "packages-dev": [],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [
-
-    ],
+    "stability-flags": [],
     "prefer-stable": false,
     "platform": {
         "php": ">=5.3"
     },
-    "platform-dev": [
-
-    ]
+    "platform-dev": []
 }
