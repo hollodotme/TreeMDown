@@ -13,6 +13,12 @@ You like TreeMDown and you are interested in browsing multiple trees of markdown
 > Check out [TreeMDown-Multi](https://github.com/hollodotme/TreeMDown-Multi)!
 > [Live demo is available here.](http://hollo.me/treemdown-multi/)
 
+### Latest updates
+
+ * Updated [highlightjs](https://highlightjs.org) to version 8.3
+ * Fixed syntax highlighting of markdown code
+ * Handling internal links between markdown files in the same tree (see the documentation)
+
 ## Requirements / Dependencies
 
  * PHP >= 5.3
