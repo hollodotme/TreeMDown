@@ -129,21 +129,18 @@ class Linker
 	 */
 	private function getModifiedQueryString( $query_string, $url_path )
 	{
-		$query_vars = array();
+		$query_vars = $this->search->getOptions()->get( Opt::BASE_PARAMS );
+
 		if ( !empty($query_string) )
 		{
-			parse_str( $query_string, $query_vars );
+			parse_str( $query_string, $parsed_vars );
+			$query_vars = array_merge( $query_vars, $parsed_vars );
 		}
 
 		if ( isset($query_vars['q']) )
 		{
 			$query_vars['tmd_q'] = $query_vars['q'];
 			unset($query_vars['q']);
-		}
-
-		if ( !isset($query_vars['tmd_q']) )
-		{
-			$query_vars['tmd_q'] = $this->search->getOptions()->get( Opt::SEARCH_TERM );
 		}
 
 		$query_vars['tmd_f'] = $url_path;

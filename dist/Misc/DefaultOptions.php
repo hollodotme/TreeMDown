@@ -34,6 +34,11 @@ class DefaultOptions extends Options
 		$this->set( Opt::FILE_CURRENT, '' );
 		$this->set( Opt::OUTPUT_TYPE, Opt::OUTPUT_TYPE_DOM );
 		$this->set( Opt::GITHUB_RIBBON_URL, 'https://github.com/hollodotme/TreeMDown' );
-		$this->set( Opt::BASE_PARAMS, array() );
+		$this->set(
+			Opt::BASE_PARAMS, array(
+				'tmd_f' => 'index.md',
+				'tmd_q' => '',
+			)
+		);
 	}
 }
