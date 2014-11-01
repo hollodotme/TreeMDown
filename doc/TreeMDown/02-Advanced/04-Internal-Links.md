@@ -8,7 +8,7 @@ To create a link that points to another markdown file in your current tree, simp
 
 [Go to "What is TreeMDown"](01-What-Is-TreeMDown.md)
 
-```md
+```markd
 [Go to "What is TreeMDown"](01-What-Is-TreeMDown.md)
 ```
 
@@ -28,7 +28,7 @@ So you can easily point to another topic and make more occurances visible in the
 
 [Have a look at auto table examples!](03-Examples/01-Nested-Table-Of-Contents.md?q=table)
 
-```md
+```markd
 [Have a look at auto table examples!](03-Examples/01-Nested-Table-Of-Contents.md?q=table)
 ```
 
@@ -40,6 +40,6 @@ You can link directly to the raw content of a file inside of your tree by adding
 
 [Watch the source of this file!](02-Advanced/04-Internal-Links.md?raw)
 
-```md
+```markd
 [Watch the source of this file!](02-Advanced/04-Internal-Links.md?raw)
 ```
