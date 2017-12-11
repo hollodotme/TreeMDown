@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 /**
  * Main class for using TreeMDown
- *
  * @author hollodotme
  */
 
@@ -17,279 +16,158 @@ use hollodotme\TreeMDown\Utilities\FileEncoder;
 
 /**
  * Class TreeMDown
- *
  * @package hollodotme\TreeMDown
  */
 class TreeMDown
 {
 
-	/**
-	 * @var null|Options
-	 */
-	protected $_options = null;
+	/** @var Options */
+	protected $options;
 
-	/**
-	 * The Search instance
-	 *
-	 * @var Search|null
-	 */
-	protected $_search = null;
+	/** @var Search */
+	protected $search;
 
-	/**
-	 * The HTMLTree instance
-	 *
-	 * @var HTMLTree|null
-	 */
-	protected $_tree = null;
+	/** @var HTMLTree */
+	protected $tree;
 
-	/**
-	 * The Page instance
-	 *
-	 * @var null|HTMLPage
-	 */
-	protected $_page = null;
+	/** @var HTMLPage */
+	protected $page;
 
-	/**
-	 * Constructor
-	 *
-	 * @param string $root_dir Root directory
-	 */
-	public function __construct( $root_dir = '.' )
+	public function __construct( string $rootDir = '.' )
 	{
-		$this->_options = new DefaultOptions();
-		$this->_options->set( Opt::DIR_ROOT, realpath( strval( $root_dir ) ) );
+		$this->options = new DefaultOptions();
+		$this->options->set( Opt::DIR_ROOT, realpath( $rootDir ) );
 	}
 
-	/**
-	 * Return the options
-	 *
-	 * @return Options
-	 */
-	public function getOptions()
+	public function getOptions() : Options
 	{
-		return $this->_options;
+		return $this->options;
 	}
 
-	/**
-	 * Set the options
-	 *
-	 * @param Options $options
-	 */
-	public function setOptions( Options $options )
+	public function setOptions( Options $options ) : void
 	{
-		$this->_options = $options;
+		$this->options = $options;
 	}
 
-	/**
-	 * Set the project name
-	 *
-	 * @param string $project_name Project name
-	 */
-	public function setProjectName( $project_name )
+	public function setProjectName( string $projectName ) : void
 	{
-		$this->_options->set( Opt::NAME_PROJECT, strval( $project_name ) );
+		$this->options->set( Opt::NAME_PROJECT, $projectName );
 	}
 
-	/**
-	 * Return the project name
-	 *
-	 * @return string
-	 */
-	public function getProjectName()
+	public function getProjectName() : string
 	{
-		return $this->_options->get( Opt::NAME_PROJECT );
+		return $this->options->get( Opt::NAME_PROJECT );
 	}
 
-	/**
-	 * Set the short description
-	 *
-	 * @param string $short_description Short description
-	 */
-	public function setShortDescription( $short_description )
+	public function setShortDescription( string $shortDescription ) : void
 	{
-		$this->_options->set( Opt::PROJECT_ABSTRACT, strval( $short_description ) );
+		$this->options->set( Opt::PROJECT_ABSTRACT, $shortDescription );
 	}
 
-	/**
-	 * Return the short description
-	 *
-	 * @return string
-	 */
-	public function getShortDescription()
+	public function getShortDescription() : string
 	{
-		return $this->_options->get( Opt::PROJECT_ABSTRACT );
+		return $this->options->get( Opt::PROJECT_ABSTRACT );
 	}
 
-	/**
-	 * Set the company_name name
-	 *
-	 * @param string $company_name Company name
-	 */
-	public function setCompanyName( $company_name )
+	public function setCompanyName( string $companyName ) : void
 	{
-		$this->_options->set( Opt::NAME_COMPANY, strval( $company_name ) );
+		$this->options->set( Opt::NAME_COMPANY, $companyName );
 	}
 
-	/**
-	 * Return the company name
-	 *
-	 * @return string
-	 */
-	public function getCompanyName()
+	public function getCompanyName() : string
 	{
-		return $this->_options->get( Opt::NAME_COMPANY );
+		return $this->options->get( Opt::NAME_COMPANY );
 	}
 
-	/**
-	 * Return the default file (relative to root directory)
-	 *
-	 * @return string
-	 */
-	public function getDefaultFile()
+	public function getDefaultFile() : string
 	{
-		return $this->_options->get( Opt::FILE_DEFAULT );
+		return $this->options->get( Opt::FILE_DEFAULT );
 	}
 
-	/**
-	 * Set the default file (relative to root directory)
-	 *
-	 * @param string $default_file Default file
-	 */
-	public function setDefaultFile( $default_file )
+	public function setDefaultFile( string $defaultFile ) : void
 	{
-		$this->_options->set( Opt::FILE_DEFAULT, ltrim( trim( $default_file ), "\t\n\r\0\x0B\/" ) );
+		$this->options->set( Opt::FILE_DEFAULT, ltrim( trim( $defaultFile ), "\t\n\r\0\x0B\/" ) );
 	}
 
-	/**
-	 * Hide empty folders
-	 */
-	public function hideEmptyFolders()
+	public function hideEmptyFolders() : void
 	{
-		$this->_options->set( Opt::EMPTY_FOLDERS_HIDDEN, true );
+		$this->options->set( Opt::EMPTY_FOLDERS_HIDDEN, true );
 	}
 
-	/**
-	 * Show empty folders
-	 */
-	public function showEmptyFolders()
+	public function showEmptyFolders() : void
 	{
-		$this->_options->set( Opt::EMPTY_FOLDERS_HIDDEN, false );
+		$this->options->set( Opt::EMPTY_FOLDERS_HIDDEN, false );
 	}
 
-	/**
-	 * Enable prettified names of folders and files
-	 */
-	public function enablePrettyNames()
+	public function enablePrettyNames() : void
 	{
-		$this->_options->set( Opt::NAMES_PRETTYFIED, true );
+		$this->options->set( Opt::NAMES_PRETTYFIED, true );
 	}
 
-	/**
-	 * Disable prettified names of folders and files
-	 */
-	public function disablePrettyNames()
+	public function disablePrettyNames() : void
 	{
-		$this->_options->set( Opt::NAMES_PRETTYFIED, false );
+		$this->options->set( Opt::NAMES_PRETTYFIED, false );
 	}
 
-	/**
-	 * Hide filename suffix
-	 */
-	public function hideFilenameSuffix()
+	public function hideFilenameSuffix() : void
 	{
-		$this->_options->set( Opt::FILENAME_SUFFIX_HIDDEN, true );
+		$this->options->set( Opt::FILENAME_SUFFIX_HIDDEN, true );
 	}
 
-	/**
-	 * Show filename suffix
-	 */
-	public function showFilenameSuffix()
+	public function showFilenameSuffix() : void
 	{
-		$this->_options->set( Opt::FILENAME_SUFFIX_HIDDEN, false );
+		$this->options->set( Opt::FILENAME_SUFFIX_HIDDEN, false );
 	}
 
-	/**
-	 * Set the include file patterns
-	 *
-	 * @example array('*.md', '*.markdown')
-	 *
-	 * @param array $patterns Include patterns
-	 */
-	public function setIncludePatterns( array $patterns )
+	public function setIncludePatterns( array $patterns ) : void
 	{
-		$this->_options->set( Opt::PATH_INCLUDE_PATTERNS, $patterns );
+		$this->options->set( Opt::PATH_INCLUDE_PATTERNS, $patterns );
 	}
 
-	/**
-	 * Return the include file patterns
-	 *
-	 * @return array
-	 */
-	public function getIncludePatterns()
+	public function getIncludePatterns() : array
 	{
-		return $this->_options->get( Opt::PATH_INCLUDE_PATTERNS );
+		return $this->options->get( Opt::PATH_INCLUDE_PATTERNS );
 	}
 
-	/**
-	 * Set the exclude file/path patterns
-	 *
-	 * @example array('.*')
-	 *
-	 * @param array $patterns Exclude patterns
-	 */
-	public function setExcludePatterns( array $patterns )
+	public function setExcludePatterns( array $patterns ) : void
 	{
-		$this->_options->set( Opt::PATH_EXCLUDE_PATTERNS, $patterns );
+		$this->options->set( Opt::PATH_EXCLUDE_PATTERNS, $patterns );
 	}
 
-	/**
-	 * Return the file/path exclude patterns
-	 *
-	 * @return array
-	 */
-	public function getExcludePatterns()
+	public function getExcludePatterns() : array
 	{
-		return $this->_options->get( Opt::PATH_EXCLUDE_PATTERNS );
+		return $this->options->get( Opt::PATH_EXCLUDE_PATTERNS );
 	}
 
-	/**
-	 * Enable Github ribbon
-	 */
-	public function enableGithubRibbon()
+	public function enableGithubRibbon() : void
 	{
-		$this->_options->set( Opt::GITHUB_RIBBON_ENABLED, true );
+		$this->options->set( Opt::GITHUB_RIBBON_ENABLED, true );
 	}
 
-	/**
-	 * Disable Github ribbon
-	 */
-	public function disableGithubRibbon()
+	public function disableGithubRibbon() : void
 	{
-		$this->_options->set( Opt::GITHUB_RIBBON_ENABLED, false );
+		$this->options->set( Opt::GITHUB_RIBBON_ENABLED, false );
 	}
 
-	/**
-	 * Prepare the options
-	 */
-	protected function _prepareOptions()
+	protected function prepareOptions() : void
 	{
 		// Current file
-		if ( isset($_GET['tmd_f']) && !empty($_GET['tmd_f']) )
+		if ( isset( $_GET['tmd_f'] ) && !empty( $_GET['tmd_f'] ) )
 		{
 			$current_file = trim( $_GET['tmd_f'], "\t\r\n\0\x0B/" );
 		}
 		else
 		{
-			$current_file = $this->_options->get( Opt::FILE_DEFAULT );
+			$current_file = $this->options->get( Opt::FILE_DEFAULT );
 		}
 
-		$this->_options->set(
+		$this->options->set(
 			Opt::FILE_CURRENT,
-			realpath( $this->_options->get( Opt::DIR_ROOT ) . DIRECTORY_SEPARATOR . $current_file )
+			realpath( $this->options->get( Opt::DIR_ROOT ) . DIRECTORY_SEPARATOR . $current_file )
 		);
 
 		// Output type
-		if ( isset($_GET['tmd_r']) && !empty($_GET['tmd_r']) )
+		if ( isset( $_GET['tmd_r'] ) && !empty( $_GET['tmd_r'] ) )
 		{
 			$output_type = Opt::OUTPUT_TYPE_RAW;
 		}
@@ -298,95 +176,86 @@ class TreeMDown
 			$output_type = Opt::OUTPUT_TYPE_DOM;
 		}
 
-		$this->_options->set( Opt::OUTPUT_TYPE, $output_type );
+		$this->options->set( Opt::OUTPUT_TYPE, $output_type );
 
 		// Search term
-		$this->_options->set( Opt::SEARCH_TERM, isset($_GET['tmd_q']) ? strval( $_GET['tmd_q'] ) : '' );
+		$this->options->set( Opt::SEARCH_TERM, isset( $_GET['tmd_q'] ) ? strval( $_GET['tmd_q'] ) : '' );
 
 		// Base params
-		$base_params = array(
+		$base_params = [
 			'tmd_f' => $current_file,
-			'tmd_q' => $this->_options->get( Opt::SEARCH_TERM ),
-		);
+			'tmd_q' => $this->options->get( Opt::SEARCH_TERM ),
+		];
 
-		$this->_options->set( Opt::BASE_PARAMS, $base_params );
+		$this->options->set( Opt::BASE_PARAMS, $base_params );
 	}
 
-	/**
-	 * Prepare the search
-	 */
-	protected function _prepareSearch()
+	protected function prepareSearch() : void
 	{
 		// Init search
-		$this->_search = new Search( $this->_options );
+		$this->search = new Search( $this->options );
 	}
 
-	/**
-	 * Prepare the tree
-	 */
-	protected function _prepareTree()
+	protected function prepareTree() : void
 	{
 		// Init tree
-		$this->_tree = new HTMLTree( $this->_search );
+		$this->tree = new HTMLTree( $this->search );
 	}
 
-	/**
-	 * Prepare the page
-	 */
-	protected function _preparePage()
+	protected function preparePage() : void
 	{
-		$this->_page = new HTMLPage( $this->_tree );
+		$this->page = new HTMLPage( $this->tree );
 	}
 
 	/**
-	 * Return the page output (HTML / Raw)
-	 *
 	 * @param array $headers Output headers
+	 *
+	 * @throws \RuntimeException
 	 *
 	 * @return string|\DOMDocument
 	 */
-	public function getOutput( array &$headers = array() )
+	public function getOutput( array &$headers = [] )
 	{
-		$this->_prepareOptions();
-		$this->_prepareSearch();
-		$this->_prepareTree();
+		$this->prepareOptions();
+		$this->prepareSearch();
+		$this->prepareTree();
 
 		// Raw output?
-		switch ( $this->_options->get( Opt::OUTPUT_TYPE ) )
+		switch ( $this->options->get( Opt::OUTPUT_TYPE ) )
 		{
 			case Opt::OUTPUT_TYPE_RAW :
-			{
-				$headers['Content-type'] = 'text/plain; charset=UTF-8';
-
-				$current_file = $this->_search->getCurrentFile( false );
-
-				if ( $this->_search->isCurrentFileValid() && is_file( $current_file ) )
 				{
-					$file_encoder = new FileEncoder( $current_file );
-					$output       = $file_encoder->getFileContents();
-				}
-				else
-				{
-					$output = 'Your current selection is not valid.';
-				}
+					$headers['Content-type'] = 'text/plain; charset=UTF-8';
 
-				break;
-			}
+					$current_file = $this->search->getCurrentFile( false );
+
+					if ( $this->search->isCurrentFileValid() && is_file( $current_file ) )
+					{
+						$file_encoder = new FileEncoder( $current_file );
+						$output       = $file_encoder->getFileContents();
+					}
+					else
+					{
+						$output = 'Your current selection is not valid.';
+					}
+
+					break;
+				}
 			case Opt::OUTPUT_TYPE_DOM:
-			{
-				$headers['Content-type'] = 'text/html; charset=UTF-8';
+				{
+					$headers['Content-type'] = 'text/html; charset=UTF-8';
 
-				$this->_tree->buildTree();
+					$this->tree->buildTree();
 
-				$this->_preparePage();
+					$this->preparePage();
 
-				$output = $this->_page->getDOMDocument();
+					$output = $this->page->getDOMDocument();
 
-				break;
-			}
+					break;
+				}
 			default:
 				{
-				$output = 'No valid output type set.';
+					$output = 'No valid output type set.';
 				}
 		}
 
@@ -394,11 +263,11 @@ class TreeMDown
 	}
 
 	/**
-	 * Display the output
+	 * @throws \RuntimeException
 	 */
-	public function display()
+	public function display() : void
 	{
-		$headers = array();
+		$headers = [];
 		$output  = $this->getOutput( $headers );
 
 		foreach ( $headers as $type => $value )
@@ -410,10 +279,12 @@ class TreeMDown
 		{
 			$output->formatOutput = false;
 			echo $output->saveHTML();
+			flush();
+			
+			return;
 		}
-		else
-		{
-			echo $output;
-		}
+
+		echo $output;
+		flush();
 	}
 }

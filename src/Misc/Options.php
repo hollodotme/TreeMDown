@@ -20,13 +20,13 @@ class Options
 	 *
 	 * @var array
 	 */
-	protected $_options = array();
+	protected $_options = [];
 
 	/**
 	 * Set an option value
 	 *
-	 * @param int    $option Option
-	 * @param string $value  Value
+	 * @param int          $option Option
+	 * @param string|array $value  Value
 	 */
 	public function set( $option, $value )
 	{
@@ -42,7 +42,7 @@ class Options
 	 */
 	public function get( $option )
 	{
-		if ( isset($this->_options[ $option ]) )
+		if ( isset( $this->_options[ $option ] ) )
 		{
 			$value = $this->_options[ $option ];
 		}

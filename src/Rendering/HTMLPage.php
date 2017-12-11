@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Class for the HTML page
- *
  * @author hollodotme
  */
 
@@ -12,75 +10,50 @@ use hollodotme\TreeMDown\Misc\Options;
 
 /**
  * Class HTMLPage
- *
  * @package hollodotme\TreeMDown\Rendering
  */
 class HTMLPage
 {
+	public const ASSET_CSS         = 'asset_css';
 
-	const ASSET_CSS         = 'asset_css';
+	public const ASSET_FONT        = 'asset_font';
 
-	const ASSET_FONT        = 'asset_font';
+	public const ASSET_JS          = 'asset_js';
 
-	const ASSET_JS          = 'asset_js';
+	public const ASSET_IMG         = 'asset_img';
 
-	const ASSET_IMG         = 'asset_img';
+	public const META_PROJECT_NAME = 'meta_project_name';
 
-	const META_PROJECT_NAME = 'meta_project_name';
+	public const META_ABSTRACT     = 'meta_abstract';
 
-	const META_ABSTRACT     = 'meta_abstract';
+	public const META_COMPANY      = 'meta_company';
 
-	const META_COMPANY      = 'meta_company';
+	/** @var HTMLTree */
+	protected $tree;
 
-	/**
-	 * Tree instance
-	 *
-	 * @var HTMLTree
-	 */
-	protected $_tree;
+	/** @var \DOMDocument */
+	protected $dom;
 
-	/**
-	 * DOM document
-	 *
-	 * @var \DOMDocument
-	 */
-	protected $_dom;
-
-	/**
-	 * Constructor
-	 *
-	 * @param HTMLTree $tree
-	 */
 	public function __construct( HTMLTree $tree )
 	{
-		$this->_tree = $tree;
+		$this->tree = $tree;
 
-		$dom_implementation = new \DOMImplementation();
-		$doc_type           = $dom_implementation->createDocumentType( 'html', '', '' );
+		$domImplementation = new \DOMImplementation();
+		$docType           = $domImplementation->createDocumentType( 'html', '', '' );
 
-		$this->_dom = $dom_implementation->createDocument( '', 'html', $doc_type );
-		$this->_dom->documentElement->setAttribute( 'lang', 'en' );
+		$this->dom = $domImplementation->createDocument( '', 'html', $docType );
+		$this->dom->documentElement->setAttribute( 'lang', 'en' );
 	}
 
-	/**
-	 * Return the options (wrapper)
-	 *
-	 * @return Options
-	 */
-	public function getOptions()
+	public function getOptions() : Options
 	{
-		return $this->_tree->getOptions();
+		return $this->tree->getOptions();
 	}
 
-	/**
-	 * Return the rendered DOMDocument
-	 *
-	 * @return \DOMDocument
-	 */
-	public function getDOMDocument()
+	public function getDOMDocument() : \DOMDocument
 	{
 		// Init head section
-		$head = new HTMLPage\Head( $this->_dom->documentElement, $this->_tree );
+		$head = new HTMLPage\Head( $this->dom->documentElement, $this->tree );
 
 		// Add font assets
 		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.eot' );
@@ -102,7 +75,7 @@ class HTMLPage
 		}
 
 		// Init body section
-		$body = new HTMLPage\Body( $this->_dom->documentElement, $this->_tree );
+		$body = new HTMLPage\Body( $this->dom->documentElement, $this->tree );
 
 		// Add script assets
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );
@@ -118,6 +91,6 @@ class HTMLPage
 		$head->addNodes();
 		$body->addNodes();
 
-		return $this->_dom;
+		return $this->dom;
 	}
 }

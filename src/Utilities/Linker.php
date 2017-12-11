@@ -12,13 +12,9 @@ use hollodotme\TreeMDown\Misc\Opt;
 
 class Linker
 {
-
 	/** @var Search */
 	private $search;
 
-	/**
-	 * @param Search $search
-	 */
 	public function __construct( Search $search )
 	{
 		$this->search = $search;
@@ -28,27 +24,27 @@ class Linker
 	 * @param \DOMNode $node
 	 *
 	 * @throws \InvalidArgumentException
-	 * @return \DOMElement[]
+	 * @return array|\DOMElement[]
 	 */
-	public function getInternalLinks( \DOMNode $node )
+	public function getInternalLinks( \DOMNode $node ) : array
 	{
 		$this->guardHasOwnerDocument( $node );
 
-		$internal_links = array();
-		$xpath          = new \DOMXPath( $node->ownerDocument );
-		$a_tags         = $xpath->query( '*//a[@href]' );
+		$internalLinks = [];
+		$xpath         = new \DOMXPath( $node->ownerDocument );
+		$aTags         = $xpath->query( '*//a[@href]' );
 
-		/** @var \DOMElement $a_tag */
-		foreach ( $a_tags as $a_tag )
+		/** @var \DOMElement $aTag */
+		foreach ( $aTags as $aTag )
 		{
-			$href = $a_tag->getAttribute( 'href' );
+			$href = $aTag->getAttribute( 'href' );
 			if ( !$this->isHyperRefIgnored( $href ) )
 			{
-				$internal_links[] = $a_tag;
+				$internalLinks[] = $aTag;
 			}
 		}
 
-		return $internal_links;
+		return $internalLinks;
 	}
 
 	/**
@@ -56,7 +52,7 @@ class Linker
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	private function guardHasOwnerDocument( \DOMNode $node )
+	private function guardHasOwnerDocument( \DOMNode $node ) : void
 	{
 		if ( !($node->ownerDocument instanceof \DOMDocument) )
 		{
@@ -64,96 +60,70 @@ class Linker
 		}
 	}
 
-	/**
-	 * @param string $href
-	 *
-	 * @return bool
-	 */
-	private function isHyperRefIgnored( $href )
+	private function isHyperRefIgnored( string $href ) : bool
 	{
-		$file_path = $this->getFilePathWithRootDir( $href );
+		$filePath = $this->getFilePathWithRootDir( $href );
 
-		if ( file_exists( $file_path ) )
+		if ( file_exists( $filePath ) )
 		{
-			return $this->search->isPathIgnored( $file_path );
+			return $this->search->isPathIgnored( $filePath );
 		}
-		else
-		{
-			return true;
-		}
+
+		return true;
 	}
 
-	/**
-	 * @param string $href
-	 *
-	 * @return string
-	 */
-	private function getFilePathWithRootDir( $href )
+	private function getFilePathWithRootDir( string $href ) : string
 	{
-		$root_dir          = $this->search->getOptions()->get( Opt::DIR_ROOT );
-		$url_without_query = $this->removeQueryStringIfExists( $href );
+		$rootDir         = $this->search->getOptions()->get( Opt::DIR_ROOT );
+		$urlWithoutQuery = $this->removeQueryStringIfExists( $href );
 
-		return $root_dir . DIRECTORY_SEPARATOR . $url_without_query;
+		return $rootDir . DIRECTORY_SEPARATOR . $urlWithoutQuery;
 	}
 
-	/**
-	 * @param string $href
-	 *
-	 * @return string
-	 */
-	private function removeQueryStringIfExists( $href )
+	private function removeQueryStringIfExists( string $href ) : string
 	{
 		return preg_replace( "#\?.*$#", '', $href );
 	}
 
-	/**
-	 * @param \DOMElement $node
-	 */
-	public function modifyInternalLink( \DOMElement $node )
+	public function modifyInternalLink( \DOMElement $node ) : void
 	{
-		$url          = $node->getAttribute( 'href' );
-		$url_path     = parse_url( $url, PHP_URL_PATH );
-		$query_string = parse_url( $url, PHP_URL_QUERY );
+		$url         = $node->getAttribute( 'href' );
+		$urlPath     = (string)parse_url( $url, PHP_URL_PATH );
+		$queryString = (string)parse_url( $url, PHP_URL_QUERY );
 
-		$modified_query = $this->getModifiedQueryString( $query_string, $url_path );
-		$modified_href  = '?' . $modified_query;
+		$modifiedQuery = $this->getModifiedQueryString( $queryString, $urlPath );
+		$modifiedHref  = '?' . $modifiedQuery;
 
-		$node->setAttribute( 'href', $modified_href );
+		$node->setAttribute( 'href', $modifiedHref );
 	}
 
-	/**
-	 * @param string $query_string
-	 * @param string $url_path
-	 *
-	 * @return string
-	 */
-	private function getModifiedQueryString( $query_string, $url_path )
+	private function getModifiedQueryString( string $queryString, string $urlPath ) : string
 	{
-		$query_vars = $this->search->getOptions()->get( Opt::BASE_PARAMS );
+		$queryVars = $this->search->getOptions()->get( Opt::BASE_PARAMS );
 
-		if ( !empty($query_string) )
+		if ( !empty( $queryString ) )
 		{
-			parse_str( $query_string, $parsed_vars );
-			$query_vars = array_merge( $query_vars, $parsed_vars );
+			parse_str( $queryString, $parsedVars );
+			$queryVars = array_merge( $queryVars, $parsedVars );
 		}
 
-		if ( isset($query_vars['q']) )
+		if ( isset( $queryVars['q'] ) )
 		{
-			$query_vars['tmd_q'] = $query_vars['q'];
-			unset($query_vars['q']);
+			$queryVars['tmd_q'] = $queryVars['q'];
+			unset( $queryVars['q'] );
 		}
 
-		$query_vars['tmd_f'] = $url_path;
-		unset($query_vars['tmd_r']);
+		$queryVars['tmd_f'] = $urlPath;
+		unset( $queryVars['tmd_r'] );
 
-		if ( isset($query_vars['raw']) )
+		if ( isset( $queryVars['raw'] ) )
 		{
-			$query_vars['tmd_r'] = '1';
-			unset($query_vars['raw']);
+			$queryVars['tmd_r'] = '1';
+			unset( $queryVars['raw'] );
 		}
 
-		ksort( $query_vars, SORT_STRING );
+		ksort( $queryVars, SORT_STRING );
 
-		return http_build_query( $query_vars );
+		return http_build_query( $queryVars );
 	}
 }

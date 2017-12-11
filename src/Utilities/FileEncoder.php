@@ -12,62 +12,35 @@ namespace hollodotme\TreeMDown\Utilities;
  */
 class FileEncoder
 {
-	/**
-	 * Default encoding
-	 */
-	const ENCODING_DEFAULT = 'utf-8';
+	public const ENCODING_DEFAULT = 'utf-8';
 
-	/**
-	 * The file path
-	 * @var string
-	 */
-	protected $_file_path = '';
+	/** @var string */
+	protected $filePath = '';
 
-	/**
-	 * The finfo instance
-	 * @var \finfo|null
-	 */
-	protected $_file_info = null;
+	/** @var \finfo */
+	protected $fileInfo;
 
-	/**
-	 * Constructor
-	 *
-	 * @param string $file_path The full path to file
-	 */
-	public function __construct( $file_path )
+	public function __construct( string $filePath )
 	{
-		$this->_file_path = $file_path;
-		$this->_file_info = new \finfo( FILEINFO_MIME_ENCODING );
+		$this->filePath = $filePath;
+		$this->fileInfo = new \finfo( FILEINFO_MIME_ENCODING );
 	}
 
-	/**
-	 * Return the encoding of the file
-	 * @return string
-	 */
-	public function getFileEncoding()
+	public function getFileEncoding() : string
 	{
-		return $this->_file_info->file( $this->_file_path );
+		return $this->fileInfo->file( $this->filePath );
 	}
 
-	/**
-	 * Return the file contents with $target_encoding
-	 *
-	 * @see FileEncoder::ENCODING_DEFAULT
-	 *
-	 * @param string $target_encoding
-	 *
-	 * @return string
-	 */
-	public function getFileContents( $target_encoding = self::ENCODING_DEFAULT )
+	public function getFileContents( string $targetEncoding = self::ENCODING_DEFAULT ) : string
 	{
-		$file_contents = file_get_contents( $this->_file_path );
-		$file_encoding = $this->getFileEncoding();
+		$fileContents = file_get_contents( $this->filePath );
+		$fileEncoding = $this->getFileEncoding();
 
-		if ( $file_encoding != $target_encoding )
+		if ( $fileEncoding !== $targetEncoding )
 		{
-			$file_contents = iconv( $file_encoding, $target_encoding, $file_contents );
+			$fileContents = iconv( $fileEncoding, $targetEncoding, $fileContents );
 		}
 
-		return $file_contents;
+		return $fileContents;
 	}
 }
