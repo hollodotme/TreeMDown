@@ -21,6 +21,7 @@
   ],
   "require": {
     "php": ">=7.1",
+    "ext-iconv": "*",
     "erusev/parsedown-extra": "^0.7.0"
   },
   "autoload": {
@@ -29,9 +30,9 @@
     }
   },
   "autoload-dev": {
-      "psr-4": {
-        "hollodotme\\TreeMDown\\Tests\\": "tests/"
-      }
+    "psr-4": {
+      "hollodotme\\TreeMDown\\Tests\\": "tests/"
+    }
   },
   "require-dev": {
     "tm/tooly-composer-script": "^1.0"
