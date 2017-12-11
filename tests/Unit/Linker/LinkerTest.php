@@ -6,8 +6,9 @@ use hollodotme\TreeMDown\FileSystem\Search;
 use hollodotme\TreeMDown\Misc\DefaultOptions;
 use hollodotme\TreeMDown\Misc\Opt;
 use hollodotme\TreeMDown\Utilities\Linker;
+use PHPUnit\Framework\TestCase;
 
-class LinkerTest extends \PHPUnit_Framework_TestCase
+class LinkerTest extends TestCase
 {
 
 	/** @var DefaultOptions */
