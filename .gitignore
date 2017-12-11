@@ -1,7 +1,3 @@
-.idea
-vendor
-!composer.json
-!composer.lock
-.vagrant/
-vagrant
-!env/vagrant/
+/.idea/
+/vendor/
+/build/logs/
