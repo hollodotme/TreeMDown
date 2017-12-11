@@ -1,32 +1,51 @@
 {
-	"name":        "hollodotme/treemdown",
-	"description": "A PHP class for browsing markdown files with HTML rendering, syntax highlighting and search",
-	"keywords":    [
-		"markdown",
-		"markdown extra",
-		"parser",
-		"tree",
-		"search",
-		"grep",
-		"html"
-	],
-	"homepage":    "http://hollo.me/treemdown",
-	"type":        "library",
-	"license":     "MIT",
-	"authors":     [
-		{
-			"name":     "Holger Woltersdorf",
-			"email":    "hw@hollo.me",
-			"homepage": "http://github.com/hollodotme"
-		}
-	],
-	"require":     {
-		"php": ">=5.3",
-		"erusev/parsedown-extra": "~0.1"
-	},
-	"autoload":    {
-		"psr-4": {
-			"hollodotme\\TreeMDown\\": "dist/"
-		}
-	}
+  "name": "hollodotme/treemdown",
+  "description": "A PHP class for browsing markdown files with HTML rendering, syntax highlighting and search",
+  "keywords": [
+    "markdown",
+    "markdown extra",
+    "parser",
+    "tree",
+    "search",
+    "grep",
+    "html"
+  ],
+  "homepage": "http://hollo.me/treemdown",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Holger Woltersdorf",
+      "email": "hw@hollo.me"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "erusev/parsedown-extra": "^0.7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "hollodotme\\TreeMDown\\": "src/"
+    }
+  },
+  "autoload-dev": {
+      "psr-4": {
+        "hollodotme\\TreeMDown\\Tests\\": "tests/"
+      }
+  },
+  "require-dev": {
+    "tm/tooly-composer-script": "^1.0"
+  },
+  "scripts": {
+    "post-install-cmd": "Tooly\\ScriptHandler::installPharTools",
+    "post-update-cmd": "Tooly\\ScriptHandler::installPharTools"
+  },
+  "extra": {
+    "tools": {
+      "phpunit": {
+        "url": "https://phar.phpunit.de/phpunit-6.5.4.phar",
+        "only-dev": true
+      }
+    }
+  }
 }
