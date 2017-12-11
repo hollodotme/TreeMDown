@@ -1,0 +1,24 @@
+<phpunit
+        bootstrap="../tests/bootstrap.php"
+        verbose="true"
+        beStrictAboutOutputDuringTests="true"
+        beStrictAboutTestSize="true"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true">
+    <testsuites>
+        <testsuite name="TreeMDown-Unit">
+            <directory suffix="Test.php">../tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../src</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="logs/coverage"/>
+        <log type="coverage-clover" target="logs/clover.xml"/>
+    </logging>
+</phpunit>
