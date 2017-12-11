@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Main class for using TreeMDown
  *
