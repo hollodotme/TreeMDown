@@ -18,4 +18,4 @@ The search is done with grep, so you can use `*` or `.*` for searching with plac
 
 For example type: `number of .* badged` (There should be only 2 occurences in this file)
 
-**Note:** The search will grep over the files __before__ they are transaated to HTML.
+**Note:** The search will grep over the files __before__ they are transalated to HTML.

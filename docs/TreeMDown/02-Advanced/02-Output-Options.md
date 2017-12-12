@@ -21,7 +21,6 @@ $treemdown->hideEmptyFolders();
 $treemdown->showEmptyFolders();
 
 # ...
-
 ```
 
 ## Default markdown file
@@ -39,7 +38,6 @@ The given file or path/to/file must be __relative__ to the root directory of you
 $treemdown->setDefaultFile('start/README.md');
 
 # ...
-
 ```
 
 ## Show / hide filename suffix
@@ -58,7 +56,6 @@ $treemdown->hideFilenameSuffix();
 $treemdown->showFilenameSuffix();
 
 # ...
-
 ```
 
 ## Enable / disable pretty directory and file names
@@ -77,7 +74,6 @@ $treemdown->enablePrettyNames();
 $treemdown->disablePrettyNames();
 
 # ...
-
 ```
 
 ## Show / hide GitHub ribbon
@@ -99,13 +95,14 @@ $treemdown->enableGithubRibbon();
 $treemdown->disableGithubRibbon();
 
 # ...
-
 ```
 
 ## Full example
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
+namespace YourVendor\YourProject;
 
 # Init composer autoloading (change this path to fit your project)
 require_once 'vendor/autoload.php';
@@ -128,9 +125,8 @@ $treemdown->enablePrettyNames();
 $treemdown->setDefaultFile('start/README.md');
 
 # Enable the GitHub ribbon
-$treemdown->enableGitHubRibbon();
+$treemdown->enableGithubRibbon();
 
 # Display the whole page
 $treemdown->display();
-
 ```

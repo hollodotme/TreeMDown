@@ -15,7 +15,6 @@ Change these suffixes to fit your markdown filenames.
 $treemdown->setIncludePatterns( array( '*.md', '*.markdown' ) );
 
 # ...
-
 ```
 
 ## Exclude patterns
@@ -31,13 +30,14 @@ Change these patterns to exclude files __and/or__ folders from the tree.
 $treemdown->setExcludePatterns( array( '.*' ) );
 
 # ...
-
 ```
 
 ## Full example
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
+namespace YourVendor\YourProject;
 
 # Init composer autoloading (change this path to fit your project)
 require_once 'vendor/autoload.php';
@@ -55,5 +55,4 @@ $treemdown->setExcludePatterns( array( '.*', '_hideme', 'config/*' ) );
 
 # Display the whole page
 $treemdown->display();
-
 ```

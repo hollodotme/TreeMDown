@@ -1,7 +1,9 @@
 # Basic usage
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
+namespace YourVendor\YourProject;
 
 # Init composer autoloading (change this path to fit your project)
 require_once 'vendor/autoload.php';
@@ -13,5 +15,4 @@ $treemdown = new TreeMDown('/path/to/your/markdown/files');
 
 # Display the whole page
 $treemdown->display();
-
 ```

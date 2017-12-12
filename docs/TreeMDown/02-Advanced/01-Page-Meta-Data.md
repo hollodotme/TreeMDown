@@ -51,7 +51,9 @@ $treemdown->setCompanyName('My company name');
 ## Full example
 
 ```php
-<?php
+<?php declare(strict_types=1);
+
+namespace YourVendor\YourProject;
 
 # Init composer autoloading (change this path to fit your project)
 require_once 'vendor/autoload.php';
@@ -72,5 +74,4 @@ $treemdown->setCompanyName('My company');
 
 # Display the whole page
 $treemdown->display();
-
 ```
