@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Class for a tree leaf
- *
  * @author hollodotme
  */
 
@@ -9,51 +7,30 @@ namespace hollodotme\TreeMDown\FileSystem;
 
 /**
  * Class Leaf
- *
  * @package hollodotme\TreeMDown\FileSystem
  */
 class Leaf extends Entry
 {
+	/** @var string */
+	protected $error = '';
 
-	/**
-	 * Error message
-	 *
-	 * @var string
-	 */
-	protected $_error = '';
-
-	/**
-	 * Return the error
-	 *
-	 * @return string
-	 */
-	public function getError()
+	public function getError() : string
 	{
-		return $this->_error;
+		return $this->error;
 	}
 
-	/**
-	 * Set an error
-	 *
-	 * @param string $error
-	 */
-	public function setError( $error )
+	public function setError( string $error ) : void
 	{
-		$this->_error = $error;
+		$this->error = $error;
 	}
 
-	/**
-	 * Return a string representation of this instance
-	 *
-	 * @return string
-	 */
 	public function getOutput()
 	{
-		$string = str_repeat( ' ', $this->_nesting_level );
+		$string = str_repeat( ' ', $this->nestingLevel );
 
-		if ( !empty($this->_error) )
+		if ( !empty( $this->error ) )
 		{
-			$string .= '!!! ' . $this->_error . ' !!!';
+			$string .= '!!! ' . $this->error . ' !!!';
 		}
 		elseif ( $this->isActive() )
 		{
@@ -67,12 +44,7 @@ class Leaf extends Entry
 		return $string;
 	}
 
-	/**
-	 * Return a string representation of this instance for implicit casting
-	 *
-	 * @return string
-	 */
-	public function __toString()
+	public function __toString() : string
 	{
 		return $this->getOutput();
 	}

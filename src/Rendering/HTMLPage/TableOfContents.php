@@ -1,48 +1,34 @@
 <?php declare(strict_types=1);
 /**
- * TOC section
  * @author hollodotme
  */
 
 namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
- * Class TOC
+ * Class TableOfContents
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
 class TableOfContents extends AbstractSection
 {
+	/** @var \DOMElement */
+	protected $tableOfContents;
 
-	/**
-	 * The TOC
-	 * @var null|\DOMElement
-	 */
-	protected $_toc = null;
-
-	/**
-	 * @return \DOMElement|null
-	 */
-	public function getToc()
+	public function getTableOfContents() : \DOMElement
 	{
-		return $this->_toc;
+		return $this->tableOfContents;
 	}
 
-	/**
-	 * @param \DOMElement $toc
-	 */
-	public function setToc( \DOMElement $toc )
+	public function setTableOfContents( \DOMElement $tableOfContents )
 	{
-		$this->_toc = $toc;
+		$this->tableOfContents = $tableOfContents;
 	}
 
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
-		if ( !is_null( $this->_toc ) )
+		if ( null !== $this->tableOfContents )
 		{
-			$this->getContainer()->appendChild( $this->getDom()->importNode( $this->_toc, true ) );
+			$this->getDomContainer()->appendChild( $this->getDom()->importNode( $this->tableOfContents, true ) );
 		}
 	}
 }

@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Content section
  * @author hollodotme
  */
 
@@ -12,102 +11,68 @@ namespace hollodotme\TreeMDown\Rendering\HTMLPage;
  */
 class Content extends AbstractSection
 {
+	/** @var \DOMElement */
+	protected $parsedMarkdown;
 
-	/**
-	 * The parsed markdown
-	 * @var null|\DOMElement
-	 */
-	protected $_parsed_markdown = null;
+	/** @var array */
+	protected $userMessages = [];
 
-	/**
-	 * User messages
-	 * @var array
-	 */
-	protected $_user_messages = array();
-
-	/**
-	 * @return null|\DOMElement
-	 */
-	public function getParsedMarkdown()
+	public function getParsedMarkdown() : \DOMElement
 	{
-		return $this->_parsed_markdown;
+		return $this->parsedMarkdown;
 	}
 
-	/**
-	 * @param \DOMElement $parsed_markdown
-	 */
-	public function setParsedMarkdown( \DOMElement $parsed_markdown )
+	public function setParsedMarkdown( \DOMElement $parsedMarkdown ) : void
 	{
-		$this->_parsed_markdown = $parsed_markdown;
+		$this->parsedMarkdown = $parsedMarkdown;
 	}
 
-	/**
-	 * Return the user messages
-	 * @return array
-	 */
-	public function getUserMessages()
+	public function getUserMessages() : array
 	{
-		return $this->_user_messages;
+		return $this->userMessages;
 	}
 
-	/**
-	 * Set user messages
-	 *
-	 * @param array $user_messages
-	 */
-	public function setUserMessages( array $user_messages )
+	public function setUserMessages( array $userMessages ) : void
 	{
-		$this->_user_messages = $user_messages;
+		$this->userMessages = $userMessages;
 	}
 
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
 		$div = $this->getDom()->createElement( 'div' );
 		$div->setAttribute( 'class', 'tmd-main-content markdown-content' );
-		$this->getContainer()->appendChild( $div );
+		$this->getDomContainer()->appendChild( $div );
 
 		// Add all user messages
-		foreach ( $this->_user_messages as $severity => $messages )
+		foreach ( $this->userMessages as $severity => $messages )
 		{
-			foreach ( $messages as $message )
+			foreach ( (array)$messages as $message )
 			{
-				$this->_addUserMessage( $div, $severity, $message['title'], $message['message'] );
+				$this->addUserMessage( $div, new UserMessage( $message['title'], $message['message'], $severity ) );
 			}
 		}
 
-		// Import parsed content?
-		if ( !is_null( $this->_parsed_markdown ) )
+		if ( null !== $this->parsedMarkdown )
 		{
-			$div->appendChild( $this->getDom()->importNode( $this->_parsed_markdown, true ) );
+			$div->appendChild( $this->getDom()->importNode( $this->parsedMarkdown, true ) );
 		}
 	}
 
-	/**
-	 * Adds a user message to the content section
-	 *
-	 * @param \DOMElement $elem
-	 * @param string      $severity
-	 * @param string      $header
-	 * @param string      $message
-	 */
-	protected function _addUserMessage( \DOMElement $elem, $severity, $header, $message )
+	protected function addUserMessage( \DOMElement $elem, UserMessage $userMessage ) : void
 	{
 		$panel = $this->getDom()->createElement( 'div' );
-		$panel->setAttribute( 'class', 'panel panel-' . $severity );
+		$panel->setAttribute( 'class', 'panel panel-' . $userMessage->getSeverity() );
 		$elem->appendChild( $panel );
 
 		$heading = $this->getDom()->createElement( 'div' );
 		$heading->setAttribute( 'class', 'panel-heading' );
 		$panel->appendChild( $heading );
 
-		$title = $this->getDom()->createElement( 'h3', $header );
+		$title = $this->getDom()->createElement( 'h3', $userMessage->getTitle() );
 		$title->setAttribute( 'class', 'panel-title' );
 		$heading->appendChild( $title );
 
-		$content = $this->getDom()->createElement( 'div', $message );
+		$content = $this->getDom()->createElement( 'div', $userMessage->getMessage() );
 		$content->setAttribute( 'class', 'panel-body' );
 		$panel->appendChild( $content );
 	}

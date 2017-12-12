@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Sidebar section
  * @author hollodotme
  */
 
@@ -12,12 +11,8 @@ namespace hollodotme\TreeMDown\Rendering\HTMLPage;
  */
 class Sidebar extends AbstractSection
 {
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
-		// Import the tree DOM
-		$this->getContainer()->appendChild( $this->getDom()->importNode( $this->_tree->getOutput(), true ) );
+		$this->getDomContainer()->appendChild( $this->getDom()->importNode( $this->htmlTree->getOutput(), true ) );
 	}
 }

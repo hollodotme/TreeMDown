@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Class for builing a recursive tree of a filesystem
- *
  * @author hollodotme
  */
 
@@ -11,227 +9,160 @@ use hollodotme\TreeMDown\Misc\Opt;
 
 /**
  * Class Tree
- *
  * @package hollodotme\TreeMDown\FileSystem
  */
 class Tree extends Entry implements \Iterator, \Countable
 {
+	/** @var Entry[]|Tree[]|Leaf[] */
+	protected $entries = [];
 
-	/**
-	 * All tree entries on this nesting level
-	 *
-	 * @var Entry[]|Tree[]|Leaf[]
-	 */
-	protected $_entries = array();
+	/** @var string */
+	protected $leafObjectClass;
 
-	/**
-	 * Leaf object class
-	 *
-	 * @var string
-	 */
-	protected $_leaf_object_class;
-
-	/**
-	 * Constructor
-	 *
-	 * @param Search $search   Search
-	 * @param string $filepath Filepath
-	 */
-	public function __construct( Search $search, $filepath = '' )
+	public function __construct( Search $search, string $filepath = '' )
 	{
 		parent::__construct( $search, $filepath );
-		$this->setLeafObjectClass( __NAMESPACE__ . '\\Leaf' );
+		$this->setLeafObjectClass( Leaf::class );
 	}
 
-	/**
-	 * Return whether the tree is valid
-	 *
-	 * @return bool
-	 */
-	public function isValid()
+	public function isValid() : bool
 	{
-		return (parent::isValid() && !empty($this->_leaf_object_class));
+		return (parent::isValid() && !empty( $this->leafObjectClass ));
 	}
 
-	/**
-	 * Set a leaf object class
-	 *
-	 * @param string $leaf_object_class full qualified class name
-	 */
-	public function setLeafObjectClass( $leaf_object_class )
+	public function setLeafObjectClass( string $leafObjectClass ) : void
 	{
-		$this->_leaf_object_class = $leaf_object_class;
+		$this->leafObjectClass = $leafObjectClass;
 	}
 
-	/**
-	 * Return the leaf object class
-	 *
-	 * @return string
-	 */
-	public function getLeafObjectClass()
+	public function getLeafObjectClass() : string
 	{
-		return $this->_leaf_object_class;
+		return $this->leafObjectClass;
 	}
 
-	/**
-	 * Return the current element
-	 *
-	 * @return null|Tree|Leaf|Entry
-	 */
 	public function current()
 	{
-		return current( $this->_entries );
+		return current( $this->entries );
 	}
 
-	/**
-	 * Move forward to next element
-	 */
 	public function next()
 	{
-		next( $this->_entries );
+		next( $this->entries );
 	}
 
-	/**
-	 * Return the key of the current element
-	 *
-	 * @return int|null
-	 */
-	public function key()
+	public function key() : ?int
 	{
-		return key( $this->_entries );
+		return key( $this->entries );
 	}
 
-	/**
-	 * Checks if current position is valid
-	 *
-	 * @return bool
-	 */
-	public function valid()
+	public function valid() : bool
 	{
-		return (current( $this->_entries ) instanceof Entry);
+		return (current( $this->entries ) instanceof Entry);
 	}
 
-	/**
-	 * Rewind the Iterator to the first element
-	 */
-	public function rewind()
+	public function rewind() : void
 	{
-		reset( $this->_entries );
+		reset( $this->entries );
 	}
 
-	/**
-	 * Count elements of an object
-	 *
-	 * @return int
-	 */
-	public function count()
+	public function count() : int
 	{
-		return count( $this->_entries );
+		return \count( $this->entries );
 	}
 
 	/**
-	 * Builds the tree recursive
+	 * @throws \RuntimeException
 	 */
-	public function buildTree()
+	public function buildTree() : void
 	{
 		if ( !$this->isValid() )
 		{
 			throw new \RuntimeException( 'The tree is not set up properly.' );
 		}
-		else
+
+		$iterator = new \DirectoryIterator( $this->filePath );
+
+		foreach ( $iterator as $fileInfo )
 		{
-			$iterator = new \DirectoryIterator( $this->_filepath );
-
-			foreach ( $iterator as $file_info )
+			if ( $fileInfo->isDot() || $this->search->isPathIgnored( $fileInfo->getPathname() ) )
 			{
-				if ( !$file_info->isDot() && !$this->_search->isPathIgnored( $file_info->getPathname() ) )
-				{
-					// Subtree?
-					if ( $file_info->isDir() )
-					{
-						// Recursion
-						$sub_tree = new static( $this->_search, $file_info->getPathname() );
-						$sub_tree->setLeafObjectClass( $this->_leaf_object_class );
-						$sub_tree->buildTree();
-
-						if ( $sub_tree->isValid() )
-						{
-							if ( !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) || $sub_tree->count() > 0 )
-							{
-								$this->_entries[] = $sub_tree;
-							}
-						}
-					}
-					// Leaf!
-					elseif ( $file_info->isFile() )
-					{
-						$leaf = $this->getLeafObject( $file_info->getPathname() );
-						if ( $leaf->isValid() )
-						{
-							$this->_entries[] = $leaf;
-						}
-					}
-				}
+				continue;
 			}
 
-			// Error on empty directories
-			if ( !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) && !$this->hasFiles() )
+			// Subtree?
+			if ( $fileInfo->isDir() )
 			{
-				$leaf = $this->getLeafObject( $this->_filepath );
-				$leaf->setError( "Directory has no files matching the filter." );
-				$this->_entries[] = $leaf;
-			}
+				// Recursion
+				$subTree = new static( $this->search, $fileInfo->getPathname() );
+				$subTree->setLeafObjectClass( $this->leafObjectClass );
+				$subTree->buildTree();
 
-			// Sort by folder and file and by name
-			usort(
-				$this->_entries,
-				function ( Entry $a, Entry $b )
+				if ( $subTree->isValid() )
 				{
-					if ( ($a instanceof Tree) && ($b instanceof Leaf) )
+					if ( $subTree->count() > 0 || !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) )
 					{
-						return -1;
-					}
-					elseif ( ($a instanceof Leaf) && ($b instanceof Tree) )
-					{
-						return 1;
-					}
-					else
-					{
-						return strnatcasecmp( $a->getFilename(), $b->getFilename() );
+						$this->entries[] = $subTree;
 					}
 				}
-			);
+
+				continue;
+			}
+
+			// Leaf!
+			if ( $fileInfo->isFile() )
+			{
+				$leaf = $this->getLeafObject( $fileInfo->getPathname() );
+				if ( $leaf->isValid() )
+				{
+					$this->entries[] = $leaf;
+				}
+			}
 		}
+
+		if ( !$this->hasFiles() && !$this->getOptions()->get( Opt::EMPTY_FOLDERS_HIDDEN ) )
+		{
+			$leaf = $this->getLeafObject( $this->filePath );
+			$leaf->setError( 'Directory has no files matching the filter.' );
+			$this->entries[] = $leaf;
+		}
+
+		usort(
+			$this->entries,
+			function ( Entry $a, Entry $b )
+			{
+				if ( ($a instanceof Tree) && ($b instanceof Leaf) )
+				{
+					return -1;
+				}
+
+				if ( ($a instanceof Leaf) && ($b instanceof Tree) )
+				{
+					return 1;
+				}
+
+				return strnatcasecmp( $a->getBasename(), $b->getBasename() );
+			}
+		);
 	}
 
-	/**
-	 * Return whether this tree has files
-	 *
-	 * @return bool
-	 */
-	public function hasFiles()
+	public function hasFiles() : bool
 	{
-		$has_files = false;
+		$hasFiles = false;
 
 		$this->rewind();
 
-		while ( !$has_files && $this->valid() )
+		while ( !$hasFiles && $this->valid() )
 		{
-			$has_files = ($this->current() instanceof Leaf);
+			$hasFiles = ($this->current() instanceof Leaf);
 			$this->next();
 		}
 
-		return $has_files;
+		return $hasFiles;
 	}
 
-	/**
-	 * Return a string represetation of this instance
-	 *
-	 * @return string
-	 */
 	public function getOutput()
 	{
-		$string = str_repeat( ' ', max( 0, $this->_nesting_level ) );
+		$string = str_repeat( ' ', max( 0, $this->nestingLevel ) );
 
 		if ( $this->isActive() )
 		{
@@ -239,10 +170,10 @@ class Tree extends Entry implements \Iterator, \Countable
 		}
 		else
 		{
-			$string .= $this->_filename;
+			$string .= $this->basename;
 		}
 
-		foreach ( $this->_entries as $entry )
+		foreach ( $this->entries as $entry )
 		{
 			$string .= PHP_EOL . $entry->getOutput();
 		}
@@ -250,12 +181,7 @@ class Tree extends Entry implements \Iterator, \Countable
 		return $string;
 	}
 
-	/**
-	 * Return a string represetation of this instance for implicit casting
-	 *
-	 * @return string
-	 */
-	public function __toString()
+	public function __toString() : string
 	{
 		return $this->getOutput();
 	}
@@ -265,23 +191,18 @@ class Tree extends Entry implements \Iterator, \Countable
 	 *
 	 * @param string $filepath
 	 *
+	 * @throws \RuntimeException
 	 * @return Leaf
 	 */
-	public function getLeafObject( $filepath )
+	public function getLeafObject( string $filepath ) : Leaf
 	{
-		$leaf_object = new $this->_leaf_object_class( $this->_search, $filepath );
+		$leafObject = new $this->leafObjectClass( $this->search, $filepath );
 
-		if ( !($leaf_object instanceof Leaf) )
+		if ( $leafObject instanceof Leaf )
 		{
-			throw new \RuntimeException(
-				sprintf(
-					'%s is not a subclass of %s\\Leaf',
-					$this->_leaf_object_class .
-					__NAMESPACE__
-				)
-			);
+			return $leafObject;
 		}
 
-		return $leaf_object;
+		throw new \RuntimeException( sprintf( '%s is not a subclass of %s\\Leaf', $this->leafObjectClass, __NAMESPACE__ ) );
 	}
 }

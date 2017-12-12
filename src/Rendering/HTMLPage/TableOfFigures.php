@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Table of figures section
- *
  * @author hollodotme
  */
 
@@ -9,47 +7,28 @@ namespace hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
  * Class TableOfFigures
- *
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
 class TableOfFigures extends AbstractSection
 {
+	/** @var \DOMElement */
+	protected $tableOfFigures;
 
-	/**
-	 * The TOF
-	 *
-	 * @var null|\DOMElement
-	 */
-	protected $_tof = null;
-
-	/**
-	 * Return the TOF
-	 *
-	 * @return \DOMElement|null
-	 */
-	public function getTof()
+	public function getTableOfFigures() : \DOMElement
 	{
-		return $this->_tof;
+		return $this->tableOfFigures;
 	}
 
-	/**
-	 * Set the TOF
-	 *
-	 * @param \DOMElement|null $tof
-	 */
-	public function setTof( $tof )
+	public function setTableOfFigures( \DOMElement $tableOfFigures ) : void
 	{
-		$this->_tof = $tof;
+		$this->tableOfFigures = $tableOfFigures;
 	}
 
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
-		if ( !is_null( $this->_tof ) )
+		if ( null !== $this->tableOfFigures )
 		{
-			$this->getContainer()->appendChild( $this->getDom()->importNode( $this->_tof, true ) );
+			$this->getDomContainer()->appendChild( $this->getDom()->importNode( $this->tableOfFigures, true ) );
 		}
 	}
 }

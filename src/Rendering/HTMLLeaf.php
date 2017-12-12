@@ -14,13 +14,13 @@ use hollodotme\TreeMDown\Misc\Opt;
  */
 class HTMLLeaf extends FileSystem\Leaf
 {
-	public function getOutput() : \DOMElement
+	public function getOutput()
 	{
 		$dom = new \DOMDocument( '1.0', 'UTF-8' );
 
-		if ( !empty( $this->_error ) )
+		if ( !empty( $this->error ) )
 		{
-			$a = $dom->createElement( 'span', $this->_error );
+			$a = $dom->createElement( 'span', $this->error );
 			$a->setAttribute( 'class', 'small text-danger' );
 
 			$dom->appendChild( $a );
@@ -39,8 +39,8 @@ class HTMLLeaf extends FileSystem\Leaf
 
 		$a->setAttribute( 'href', '?' . $urlQuery );
 		$a->setAttribute( 'data-filepath', $this->getFilePath( true ) );
-		$a->setAttribute( 'data-level', $this->_nesting_level );
-		$a->setAttribute( 'data-filename', $this->_filename );
+		$a->setAttribute( 'data-level', (string)$this->nestingLevel );
+		$a->setAttribute( 'data-filename', $this->basename );
 		$a->setAttribute( 'data-active', $this->isActive() ? '1' : '0' );
 		$a->setAttribute( 'class', 'tmd-tree-leaf' . ($this->isActive() ? ' active' : '') );
 
@@ -54,11 +54,11 @@ class HTMLLeaf extends FileSystem\Leaf
 		$linkText = $dom->createElement( 'span', $this->getDisplayFilename() );
 		$a->appendChild( $linkText );
 
-		if ( $this->_search->isActive() )
+		if ( $this->search->isActive() )
 		{
 			// Badge
-			$occurences = $this->getOccurencesInSearch();
-			$badge      = $dom->createElement( 'span', $occurences );
+			$occurences = $this->getOccurrencesInSearch();
+			$badge      = $dom->createElement( 'span', (string)$occurences );
 			$badge->setAttribute(
 				'class',
 				'badge pull-right' . ($occurences > 0 ? ' active' : '')

@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Header of HTMLPage
- *
  * @author hollodotme
  */
 
@@ -12,70 +10,57 @@ use hollodotme\TreeMDown\Rendering\HTMLPage;
 
 /**
  * Class Header
- *
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
 class Head extends AbstractSection
 {
+	/** @var array */
+	protected $preparedAssets = [];
 
-	/**
-	 * Prepared assets
-	 *
-	 * @var array
-	 */
-	protected $_prepared_assets = array();
-
-	/**
-	 * Prepare the content
-	 */
-	public function prepare()
+	public function prepare() : void
 	{
-		/** @var \DOMDocument $dom */
-		$search                 = array();
-		$replace                = array();
-		$this->_prepared_assets = array();
+		$search               = [];
+		$replace              = [];
+		$this->preparedAssets = [];
 
 		// Get contents of file
-		foreach ( $this->getAssets( HTMLPage::ASSET_FONT ) as $font_file )
+		foreach ( $this->getAssets( HTMLPage::ASSET_FONT ) as $fontFile )
 		{
-			$filename     = basename( $font_file );
-			$file_path    = realpath( $font_file );
-			$file_content = base64_encode( file_get_contents( $file_path ) );
+			$filename    = basename( $fontFile );
+			$filePath    = realpath( $fontFile );
+			$fileContent = base64_encode( file_get_contents( $filePath ) );
 
-			$matches = array();
+			$matches = [];
 			preg_match( "#\.([^\.]+)$#", $filename, $matches );
 
-			switch ( $matches[1] )
+			switch ( strtolower( $matches[1] ) )
 			{
 				case 'eot':
 				case 'ttf':
 				case 'woff':
 					$search[]  = sprintf( 'url(../fonts/%s', $filename );
-					$replace[] = sprintf( 'url(data:font/%s;base64,%s', $matches[1], $file_content );
+					$replace[] = sprintf( 'url(data:font/%s;base64,%s', $matches[1], $fileContent );
 					break;
 
 				case 'svg':
 					$search[]  = sprintf( 'url(../fonts/%s', $filename );
-					$replace[] = sprintf( 'url(data:image/svg+xml;base64,%s', $matches[1], $file_content );
+					$replace[] = sprintf( 'url(data:image/svg+xml;base64,%s', $fileContent );
 					break;
 			}
 		}
 
-		foreach ( $this->getAssets( HTMLPage::ASSET_CSS ) as $css_file )
+		foreach ( $this->getAssets( HTMLPage::ASSET_CSS ) as $cssFile )
 		{
-			$file_content = file_get_contents( $css_file );
-			$file_content = str_replace( $search, $replace, $file_content );
+			$fileContent = file_get_contents( $cssFile );
+			$fileContent = str_replace( $search, $replace, $fileContent );
 
-			$this->_prepared_assets[ HTMLPage::ASSET_CSS ][] = $file_content;
+			$this->preparedAssets[ HTMLPage::ASSET_CSS ][] = $fileContent;
 		}
 	}
 
-	/**
-	 * Add nodes to DOM
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
-		$tree = $this->getTree();
+		$tree = $this->getHtmlTree();
 		$head = $this->getDom()->createElement( 'head' );
 
 		// Title
@@ -86,42 +71,42 @@ class Head extends AbstractSection
 		}
 
 		// Charset
-		$head->appendChild( $this->getElementWithAttributes( 'meta', array( 'charset' => 'UTF-8' ) ) );
+		$head->appendChild( $this->getElementWithAttributes( 'meta', ['charset' => 'UTF-8'] ) );
 
 		// Description
 		$head->appendChild(
 			$this->getElementWithAttributes(
-				'meta', array(
+				'meta',
+				[
 					'name'    => 'description',
 					'content' => $this->getOptions()->get( Opt::PROJECT_ABSTRACT ),
-				)
+				]
 			)
 		);
 
 		// Viewport
 		$head->appendChild(
 			$this->getElementWithAttributes(
-				'meta', array(
+				'meta',
+				[
 					'name'    => 'viewport',
 					'contetn' => 'width=device-width, initial-scale=1.0',
-				)
+				]
 			)
 		);
 
-		// Title
 		$head->appendChild( $this->getDom()->createElement( 'title', $title ) );
 
-		// Add prepared assets
-		foreach ( $this->_prepared_assets[ HTMLPage::ASSET_CSS ] as $css_content )
+		foreach ( (array)$this->preparedAssets[ HTMLPage::ASSET_CSS ] as $cssContent )
 		{
-			$elem = $this->getElementWithAttributes( 'style', array( 'type' => 'text/css' ) );
+			$elem = $this->getElementWithAttributes( 'style', ['type' => 'text/css'] );
 
-			$cdata = $this->getDom()->createCDATASection( $css_content );
+			$cdata = $this->getDom()->createCDATASection( $cssContent );
 
 			$elem->appendChild( $cdata );
 			$head->appendChild( $elem );
 		}
 
-		$this->getContainer()->appendChild( $head );
+		$this->getDomContainer()->appendChild( $head );
 	}
 }

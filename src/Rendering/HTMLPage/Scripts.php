@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Scripts section
  * @author hollodotme
  */
 
@@ -14,10 +13,7 @@ use hollodotme\TreeMDown\Rendering\HTMLPage;
  */
 class Scripts extends AbstractSection
 {
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
 		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $js_file )
 		{
@@ -26,10 +22,10 @@ class Scripts extends AbstractSection
 
 			$elem         = $this->getElementWithAttributes( 'script', array('type' => 'text/javascript') );
 			$elem->appendChild( $this->getDom()->createCDATASection( $file_content ) );
-			$this->getContainer()->appendChild( $elem );
+			$this->getDomContainer()->appendChild( $elem );
 		}
 
-		$this->getContainer()->appendChild(
+		$this->getDomContainer()->appendChild(
 			$this->getElementWithAttributes(
 				'script', array('type' => 'text/javascript'),
 				'hljs.initHighlightingOnLoad();'

@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Github ribbon section
- *
  * @author hollodotme
  */
 
@@ -11,20 +9,16 @@ use hollodotme\TreeMDown\Misc\Opt;
 
 /**
  * Class GithubRibbon
- *
  * @package hollodotme\TreeMDown\Rendering\HTMLPage
  */
 class GithubRibbon extends AbstractSection
 {
-	/**
-	 * Add the section nodes
-	 */
-	public function addNodes()
+	public function addNodes() : void
 	{
 		$wrapper = $this->getElementWithAttributes(
 			'div', array( 'class' => 'github-fork-ribbon-wrapper left-bottom' )
 		);
-		$this->getContainer()->appendChild( $wrapper );
+		$this->getDomContainer()->appendChild( $wrapper );
 
 		$ribbon = $this->getElementWithAttributes( 'div', array( 'class' => 'github-fork-ribbon' ) );
 		$wrapper->appendChild( $ribbon );

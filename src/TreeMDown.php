@@ -56,7 +56,7 @@ class TreeMDown
 
 	public function getProjectName() : string
 	{
-		return $this->options->get( Opt::NAME_PROJECT );
+		return (string)$this->options->get( Opt::NAME_PROJECT );
 	}
 
 	public function setShortDescription( string $shortDescription ) : void
@@ -66,7 +66,7 @@ class TreeMDown
 
 	public function getShortDescription() : string
 	{
-		return $this->options->get( Opt::PROJECT_ABSTRACT );
+		return (string)$this->options->get( Opt::PROJECT_ABSTRACT );
 	}
 
 	public function setCompanyName( string $companyName ) : void
@@ -76,12 +76,12 @@ class TreeMDown
 
 	public function getCompanyName() : string
 	{
-		return $this->options->get( Opt::NAME_COMPANY );
+		return (string)$this->options->get( Opt::NAME_COMPANY );
 	}
 
 	public function getDefaultFile() : string
 	{
-		return $this->options->get( Opt::FILE_DEFAULT );
+		return (string)$this->options->get( Opt::FILE_DEFAULT );
 	}
 
 	public function setDefaultFile( string $defaultFile ) : void
@@ -179,7 +179,7 @@ class TreeMDown
 		$this->options->set( Opt::OUTPUT_TYPE, $output_type );
 
 		// Search term
-		$this->options->set( Opt::SEARCH_TERM, isset( $_GET['tmd_q'] ) ? strval( $_GET['tmd_q'] ) : '' );
+		$this->options->set( Opt::SEARCH_TERM, isset( $_GET['tmd_q'] ) ? (string)$_GET['tmd_q'] : '' );
 
 		// Base params
 		$base_params = [
@@ -210,9 +210,8 @@ class TreeMDown
 	/**
 	 * @param array $headers Output headers
 	 *
-	 * @throws \RuntimeException
-	 *
 	 * @return string|\DOMDocument
+	 * @throws \RuntimeException
 	 */
 	public function getOutput( array &$headers = [] )
 	{
@@ -227,7 +226,7 @@ class TreeMDown
 				{
 					$headers['Content-type'] = 'text/plain; charset=UTF-8';
 
-					$current_file = $this->search->getCurrentFile( false );
+					$current_file = $this->search->getCurrentFile();
 
 					if ( $this->search->isCurrentFileValid() && is_file( $current_file ) )
 					{
@@ -262,13 +261,17 @@ class TreeMDown
 		return $output;
 	}
 
-	/**
-	 * @throws \RuntimeException
-	 */
 	public function display() : void
 	{
 		$headers = [];
-		$output  = $this->getOutput( $headers );
+		try
+		{
+			$output = $this->getOutput( $headers );
+		}
+		catch ( \RuntimeException $e )
+		{
+			$output = 'An error occurred: ' . $e->getMessage();
+		}
 
 		foreach ( $headers as $type => $value )
 		{
@@ -280,7 +283,7 @@ class TreeMDown
 			$output->formatOutput = false;
 			echo $output->saveHTML();
 			flush();
-			
+
 			return;
 		}
 

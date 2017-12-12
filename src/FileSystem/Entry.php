@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Base class for filesystem entries
- *
  * @author hollodotme
  */
 
@@ -12,202 +10,125 @@ use hollodotme\TreeMDown\Misc\Options;
 
 /**
  * Class Entry
- *
  * @package hollodotme\TreeMDown\FileSystem
  */
 class Entry
 {
+	/** @var string */
+	protected $filePath = '';
 
-	/**
-	 * Full path to file/folder
-	 *
-	 * @var null|string
-	 */
-	protected $_filepath = '';
+	/** @var string */
+	protected $basename = '';
 
-	/**
-	 * Foldername/Filename
-	 *
-	 * @var string
-	 */
-	protected $_filename = '';
+	/** @var int */
+	protected $nestingLevel = 0;
 
-	/**
-	 * Nesting level
-	 *
-	 * @var int
-	 */
-	protected $_nesting_level = 0;
+	/** @var Search */
+	protected $search;
 
-	/**
-	 * Search
-	 *
-	 * @var Search
-	 */
-	protected $_search;
-
-	/**
-	 * Constructor
-	 *
-	 * @param Search      $search   Search
-	 * @param null|string $filepath Filepath
-	 */
-	public function __construct( Search $search, $filepath = '' )
+	public function __construct( Search $search, string $filepath = '' )
 	{
-		$this->_search = $search;
+		$this->search = $search;
 
-		if ( empty($filepath) )
+		if ( '' === $filepath )
 		{
-			$this->_filepath      = $this->_search->getRootDir();
-			$this->_nesting_level = 0;
+			$this->filePath     = $this->search->getRootDir();
+			$this->nestingLevel = 0;
 		}
 		else
 		{
-			$filepath        = rtrim( $filepath, "\t\r\n\0\x0B/" );
-			$this->_filepath = realpath( $filepath );
+			$filepath       = rtrim( $filepath, "\t\r\n\0\x0B/" );
+			$this->filePath = (string)realpath( $filepath );
 
-			$this->_nesting_level = 1;
-			$this->_nesting_level += substr_count( $this->getFilePath( true ), DIRECTORY_SEPARATOR );
+			$this->nestingLevel = 1;
+			$this->nestingLevel += substr_count( $this->getFilePath( true ), DIRECTORY_SEPARATOR );
 		}
 
-		$this->_filename = basename( $this->_filepath );
+		$this->basename = basename( $this->filePath );
 	}
 
-	/**
-	 * Return whether the entry is valid
-	 *
-	 * @return bool
-	 */
-	public function isValid()
+	public function isValid() : bool
 	{
-		$is_valid = false;
-
-		if ( $this->_search->isValid() )
+		if ( !$this->search->isValid() )
 		{
-			if ( !empty($this->_filepath) )
-			{
-				if ( !$this->_search->isPathIgnored( $this->_filepath ) && file_exists( $this->_filepath ) )
-				{
-					$is_valid = true;
-				}
-			}
+			return false;
 		}
 
-		return $is_valid;
-	}
-
-	/**
-	 * Return the search
-	 *
-	 * @return Search
-	 */
-	public function getSearch()
-	{
-		return $this->_search;
-	}
-
-	/**
-	 * Return the options (wrapper)
-	 *
-	 * @return Options
-	 */
-	public function getOptions()
-	{
-		return $this->_search->getOptions();
-	}
-
-	/**
-	 * Return the filename
-	 *
-	 * @return string
-	 */
-	public function getFilename()
-	{
-		return $this->_filename;
-	}
-
-	/**
-	 * Return the display filename
-	 *
-	 * @return string
-	 */
-	public function getDisplayFilename()
-	{
-		$display_filename = $this->_filename;
-
-		// Hide suffix
-		if ( $this->getOptions()->get( Opt::FILENAME_SUFFIX_HIDDEN ) == true )
+		if ( '' === $this->filePath )
 		{
-			$display_filename = preg_replace( "#^(.+)\.[^\.]+$#", '$1', $display_filename );
+			return false;
+		}
+
+		if ( $this->search->isPathIgnored( $this->filePath ) && file_exists( $this->filePath ) )
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	public function getSearch() : Search
+	{
+		return $this->search;
+	}
+
+	public function getOptions() : Options
+	{
+		return $this->search->getOptions();
+	}
+
+	public function getBasename() : string
+	{
+		return $this->basename;
+	}
+
+	public function getDisplayFilename() : string
+	{
+		$displayFilename = $this->basename;
+
+		// Hide suffix?
+		if ( (bool)$this->getOptions()->get( Opt::FILENAME_SUFFIX_HIDDEN ) === true )
+		{
+			$displayFilename = preg_replace( "#^(.+)\.[^\.]+$#", '$1', $displayFilename );
 		}
 
 		// Prettify names?
-		if ( $this->getOptions()->get( Opt::NAMES_PRETTYFIED ) == true )
+		if ( (bool)$this->getOptions()->get( Opt::NAMES_PRETTYFIED ) === true )
 		{
-			$display_filename = preg_replace( "#[\-_]#", ' ', $display_filename );
+			$displayFilename = preg_replace( '#[\-_]#', ' ', $displayFilename );
 		}
 
-		return $display_filename;
+		return $displayFilename;
 	}
 
-	/**
-	 * Return whether this entry is active
-	 *
-	 * @return boolean
-	 */
-	public function isActive()
+	public function isActive() : bool
 	{
-		$is_active = false;
+		$filepath = preg_quote( $this->filePath, '#' );
 
-		$filepath = preg_quote( $this->_filepath, '#' );
-		if ( preg_match( "#^{$filepath}(" . DIRECTORY_SEPARATOR . "|$)#", $this->_search->getCurrentFile( false ) ) )
+		return (bool)preg_match( "#^{$filepath}(" . DIRECTORY_SEPARATOR . '|$)#', $this->search->getCurrentFile() );
+	}
+
+	public function getOccurrencesInSearch() : int
+	{
+		return $this->search->getOccurrences( $this->filePath );
+	}
+
+	public function getNestingLevel() : int
+	{
+		return $this->nestingLevel;
+	}
+
+	public function getFilePath( bool $stripRootDir = false ) : string
+	{
+		$rootDir  = $this->search->getRootDir();
+		$filePath = $this->filePath;
+
+		if ( '' !== $rootDir && $stripRootDir )
 		{
-			$is_active = true;
+			$rootDir  = preg_quote( $rootDir, '#' );
+			$filePath = preg_replace( "#^{$rootDir}(" . DIRECTORY_SEPARATOR . '|$)#', '', $this->filePath );
 		}
 
-		return $is_active;
-	}
-
-	/**
-	 * Return the search term occurences
-	 *
-	 * @return int
-	 */
-	public function getOccurencesInSearch()
-	{
-		return $this->_search->getOccurences( $this->_filepath );
-	}
-
-	/**
-	 * Return the nesting level
-	 *
-	 * @return int
-	 */
-	public function getNestingLevel()
-	{
-		return $this->_nesting_level;
-	}
-
-	/**
-	 * Return the filepath
-	 *
-	 * @param bool $strip_root_dir
-	 *
-	 * @return string
-	 */
-	public function getFilePath( $strip_root_dir = false )
-	{
-		$root_dir = $this->_search->getRootDir();
-		if ( !empty($root_dir) && !empty($strip_root_dir) )
-		{
-			$root_dir = preg_quote( $root_dir, "#" );
-			$filepath = preg_replace( "#^{$root_dir}(" . DIRECTORY_SEPARATOR . "|$)#", '', $this->_filepath );
-		}
-		else
-		{
-			$filepath = $this->_filepath;
-		}
-
-		return $filepath ?: '';
+		return $filePath ?: '';
 	}
 }

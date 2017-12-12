@@ -1,7 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Class for grep search in file system
- *
  * @author hollodotme
  */
 
@@ -12,299 +10,229 @@ use hollodotme\TreeMDown\Misc\Options;
 
 /**
  * Class Search
- *
  * @package hollodotme\TreeMDown\FileSystem
  */
-class Search
+final class Search
 {
+	/** @var Options */
+	private $options;
 
-	/**
-	 * The Options
-	 *
-	 * @var null|Options
-	 */
-	protected $_options = null;
+	/** @var array */
+	private $pathsWithOccurrences = [];
 
-	/**
-	 * Paths with occurences of search term
-	 *
-	 * @var array
-	 */
-	protected $_paths_with_occurences = array();
-
-	/**
-	 * Constructor
-	 *
-	 * @param Options $options
-	 */
 	public function __construct( Options $options )
 	{
-		$this->_options = $options;
+		$this->options = $options;
 	}
 
-	/**
-	 * Return the Options
-	 *
-	 * @return Options
-	 */
-	public function getOptions()
+	public function getOptions() : Options
 	{
-		return $this->_options;
+		return $this->options;
 	}
 
-	/**
-	 * Return whether the search is valid
-	 *
-	 * @return bool
-	 */
-	public function isValid()
+	public function isValid() : bool
 	{
-		$root_dir = $this->getRootDir();
+		$rootDir = $this->getRootDir();
 
-		return !empty($root_dir);
+		return '' !== $rootDir;
 	}
 
-	/**
-	 * Return whether the search is active
-	 *
-	 * @return bool
-	 */
-	public function isActive()
+	public function isActive() : bool
 	{
-		$search_term = $this->getSearchTerm();
+		$searchTerm = $this->getSearchTerm();
 
-		return !empty($search_term);
+		return '' !== $searchTerm;
 	}
 
-	/**
-	 * Return the root directory
-	 *
-	 * @return string
-	 */
-	public function getRootDir()
+	public function getRootDir() : string
 	{
-		return $this->getOptions()->get( Opt::DIR_ROOT );
+		return (string)$this->getOptions()->get( Opt::DIR_ROOT );
 	}
 
-	/**
-	 * Return the search term
-	 *
-	 * @return string
-	 */
-	public function getSearchTerm()
+	public function getSearchTerm() : string
 	{
-		return $this->getOptions()->get( Opt::SEARCH_TERM );
+		return (string)$this->getOptions()->get( Opt::SEARCH_TERM );
 	}
 
-	/**
-	 * Return whether current file is valid
-	 *
-	 * @return bool
-	 */
-	public function isCurrentFileValid()
+	public function isCurrentFileValid() : bool
 	{
-		$is_valid = true;
+		$currentFile = (string)$this->getOptions()->get( Opt::FILE_CURRENT );
+		$rootDir     = $this->getRootDir();
 
-		$current_file = $this->_options->get( Opt::FILE_CURRENT );
-		$root_dir     = $this->_options->get( Opt::DIR_ROOT );
-
-		if ( empty($current_file) )
+		if ( '' === $currentFile )
 		{
-			$is_valid = false;
-		}
-		elseif ( !preg_match( "#^{$root_dir}/#", $current_file ) )
-		{
-			$is_valid = false;
-		}
-		elseif ( $this->isPathIgnored( $current_file ) )
-		{
-			$is_valid = false;
+			return false;
 		}
 
-		return $is_valid;
+		if ( !preg_match( "#^{$rootDir}/#", $currentFile ) )
+		{
+			return false;
+		}
+
+		if ( $this->isPathIgnored( $currentFile ) )
+		{
+			return false;
+		}
+
+		return true;
 	}
 
-	/**
-	 * Return the current file
-	 *
-	 * @param bool $strip_root_dir
-	 *
-	 * @return string
-	 */
-	public function getCurrentFile( $strip_root_dir = false )
+	public function getCurrentFile( bool $stripRootDir = false ) : string
 	{
-		$file = '';
-
-		$current_file = $this->_options->get( Opt::FILE_CURRENT );
-
-		if ( $this->isCurrentFileValid() )
+		if ( !$this->isCurrentFileValid() )
 		{
-			if ( !empty($strip_root_dir) )
+			return '';
+		}
+
+		$currentFile = (string)$this->getOptions()->get( Opt::FILE_CURRENT );
+
+		if ( true === $stripRootDir )
+		{
+			return preg_replace( "#^{$this->getRootDir()}(" . DIRECTORY_SEPARATOR . '|$)#', '', $currentFile );
+		}
+
+		return $currentFile;
+	}
+
+	public function isPathIgnored( string $filePath ) : bool
+	{
+		$isIgnored = false;
+		$filename  = basename( $filePath );
+
+		if ( is_file( $filePath ) )
+		{
+			$includePatterns     = [];
+			$pathIncludePatterns = (array)$this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS );
+
+			foreach ( $pathIncludePatterns as $include )
 			{
-				$file = preg_replace( "#^{$this->getRootDir()}(" . DIRECTORY_SEPARATOR . "|$)#", '', $current_file );
+				$includePatterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
 			}
-			else
+
+			$includePattern = sprintf( '#^(%s)$#i', implode( '|', $includePatterns ) );
+
+			if ( !preg_match( $includePattern, $filename ) )
 			{
-				$file = $current_file;
+				$isIgnored = true;
 			}
 		}
 
-		return $file;
+		$excludePatterns     = [];
+		$pathExcludePatterns = (array)$this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS );
+
+		foreach ( $pathExcludePatterns as $exclude )
+		{
+			$excludePatterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
+		}
+
+		$excludePattern = sprintf( '#^(%s)$#i', implode( '|', $excludePatterns ) );
+
+		if ( preg_match( $excludePattern, $filename ) )
+		{
+			$isIgnored = true;
+		}
+
+		return $isIgnored;
 	}
 
-	/**
-	 * Return whether the filepath is ignored
-	 *
-	 * @param string $filepath Filepath
-	 *
-	 * @return bool
-	 */
-	public function isPathIgnored( $filepath )
+	public function getPathsWithOccurrences() : array
 	{
-		$is_ignored = false;
-		$filename   = basename( $filepath );
+		$searchTerm = $this->getSearchTerm();
+		$key        = md5( $this->getRootDir() . '::' . $searchTerm );
 
-		if ( is_file( $filepath ) )
+		if ( !isset( $this->pathsWithOccurrences[ $key ] ) )
 		{
-			$include_patterns = array();
-			foreach ( $this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS ) as $include )
+			$this->pathsWithOccurrences[ $key ] = [];
+
+			if ( '' === $searchTerm || !file_exists( $this->getRootDir() ) )
 			{
-				$include_patterns[] = str_replace( '\*', '.*', preg_quote( $include, '#' ) );
+				return $this->pathsWithOccurrences[ $key ];
 			}
 
-			$include_pattern = sprintf( "#^(%s)$#i", join( '|', $include_patterns ) );
-			if ( !preg_match( $include_pattern, $filename ) )
+			$searchTerm = escapeshellarg( addcslashes( $searchTerm, '-' ) );
+			$rootDir    = escapeshellarg( $this->getRootDir() );
+
+			$excludes            = [];
+			$pathExcludePatterns = (array)$this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS );
+
+			foreach ( $pathExcludePatterns as $exclude )
 			{
-				$is_ignored = true;
+				$excludes[] = '--exclude=' . escapeshellarg( $exclude );
 			}
-		}
 
-		$exclude_patterns = array();
-		foreach ( $this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS ) as $exclude )
-		{
-			$exclude_patterns[] = str_replace( '\*', '.*', preg_quote( $exclude, '#' ) );
-		}
+			$includes            = [];
+			$pathIncludePatterns = (array)$this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS );
 
-		$exclude_pattern = sprintf( "#^(%s)$#i", join( '|', $exclude_patterns ) );
-		if ( preg_match( $exclude_pattern, $filename ) )
-		{
-			$is_ignored = true;
-		}
-
-		return $is_ignored;
-	}
-
-	/**
-	 * Return assoc. array with paths as keys and occurences as value
-	 *
-	 * @return array
-	 */
-	public function getPathsWithOccurences()
-	{
-		$key = md5( $this->getRootDir() . '::' . $this->getSearchTerm() );
-
-		if ( !array_key_exists( $key, $this->_paths_with_occurences ) )
-		{
-			$this->_paths_with_occurences[ $key ] = array();
-			$search_term                          = $this->getSearchTerm();
-
-			if ( file_exists( $this->getRootDir() ) && !empty($search_term) )
+			foreach ( $pathIncludePatterns as $include )
 			{
-				$search_term = escapeshellarg( addcslashes( $search_term, '-' ) );
-				$root_dir    = escapeshellarg( $this->getRootDir() );
+				$includes[] = '--include=' . escapeshellarg( $include );
+			}
 
-				$excludes = array();
-				foreach ( $this->getOptions()->get( Opt::PATH_EXCLUDE_PATTERNS ) as $exclude )
+			$command = sprintf(
+				'grep -ric %s %s %s %s',
+				implode( ' ', $includes ),
+				implode( ' ', $excludes ),
+				$searchTerm,
+				$rootDir
+			);
+
+			$results = shell_exec( $command );
+
+			if ( '' === $results )
+			{
+				return $this->pathsWithOccurrences[ $key ];
+			}
+
+			$lines = explode( "\n", $results );
+			foreach ( $lines as $line )
+			{
+				if ( '' === $line )
 				{
-					$excludes[] = '--exclude=' . escapeshellarg( $exclude );
+					continue;
 				}
 
-				$includes = array();
-				foreach ( $this->getOptions()->get( Opt::PATH_INCLUDE_PATTERNS ) as $include )
-				{
-					$includes[] = '--include=' . escapeshellarg( $include );
-				}
+				[$filePath, $count] = explode( ':', $line );
 
-				$command = sprintf(
-					'grep -ric %s %s %s %s',
-					join( ' ', $includes ),
-					join( ' ', $excludes ),
-					$search_term,
-					$root_dir
-				);
-
-				$results = shell_exec( $command );
-
-				if ( !empty($results) )
-				{
-					$lines = explode( "\n", $results );
-					foreach ( $lines as $line )
-					{
-						if ( !empty($line) )
-						{
-							list($filepath, $count) = explode( ':', $line );
-							$this->_paths_with_occurences[ $key ][ $filepath ] = intval( $count );
-						}
-					}
-				}
+				$this->pathsWithOccurrences[ $key ][ $filePath ] = (int)$count;
 			}
 		}
 
-		return $this->_paths_with_occurences[ $key ];
+		return $this->pathsWithOccurrences[ $key ];
 	}
 
-	/**
-	 * Return the amount of files where at least one occurence of search term exists
-	 *
-	 * @return int
-	 */
-	public function getPathsWithOccurencesCount()
+	public function getPathsWithOccurrencesCount() : int
 	{
-		$paths_with_occurences = array_filter(
-			$this->getPathsWithOccurences(),
-			function ( $value )
+		$pathsWithOccurrences = array_filter(
+			$this->getPathsWithOccurrences(),
+			function ( int $value )
 			{
 				return ($value > 0);
 			}
 		);
 
-		return count( $paths_with_occurences );
+		return \count( $pathsWithOccurrences );
 	}
 
-	/**
-	 * Return whether the $filepath has at least one occurance of search term
-	 *
-	 * @param string $filepath Filepath
-	 *
-	 * @return bool
-	 */
-	public function hasOccurence( $filepath )
+	public function hasOccurrence( string $filePath ) : bool
 	{
-		return ($this->isActive() && $this->getOccurences( $filepath ) > 0);
+		return ($this->isActive() && $this->getOccurrences( $filePath ) > 0);
 	}
 
-	/**
-	 * Return the amount of occurences of search term in file at $filepath
-	 *
-	 * @param string $filepath Filepath
-	 *
-	 * @return int
-	 */
-	public function getOccurences( $filepath )
+	public function getOccurrences( string $filePath ) : int
 	{
-		$paths_with_occurences = $this->getPathsWithOccurences();
-		$occurences            = 0;
+		$pathsWithOccurrences = $this->getPathsWithOccurrences();
+		$occurrences          = 0;
 
-		$check_path = preg_quote( $filepath, '#' );
+		$checkPath = preg_quote( $filePath, '#' );
 
-		foreach ( $paths_with_occurences as $path => $occs )
+		foreach ( $pathsWithOccurrences as $path => $occs )
 		{
-			if ( preg_match( "#^{$check_path}(" . DIRECTORY_SEPARATOR . "|$)#", $path ) )
+			if ( preg_match( "#^{$checkPath}(" . DIRECTORY_SEPARATOR . '|$)#', $path ) )
 			{
-				$occurences += $occs;
+				$occurrences += $occs;
 			}
 		}
 
-		return $occurences;
+		return $occurrences;
 	}
 }

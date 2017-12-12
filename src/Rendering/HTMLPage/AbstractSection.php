@@ -17,140 +17,65 @@ use hollodotme\TreeMDown\Rendering\HTMLTree;
  */
 abstract class AbstractSection
 {
+	/** @var array */
+	protected $assets = [];
 
-	/**
-	 * Assets
-	 *
-	 * @var array
-	 */
-	protected $_assets = array();
+	/** @var array */
+	protected $metaData = [];
 
-	/**
-	 * Meta data
-	 *
-	 * @var array
-	 */
-	protected $_meta_data = array();
+	/** @var \DOMElement */
+	protected $domContainer;
 
-	/**
-	 * The conatiner DOMElement
-	 *
-	 * @var \DOMElement|null
-	 */
-	protected $_container = null;
+	/** @var HTMLTree */
+	protected $htmlTree;
 
-	/**
-	 * The HTMLTree
-	 *
-	 * @var HTMLTree|null
-	 */
-	protected $_tree = null;
-
-	/**
-	 * Constructor
-	 *
-	 * @param \DOMElement $container
-	 * @param HTMLTree    $tree
-	 */
-	public function __construct( \DOMElement $container, HTMLTree $tree )
+	public function __construct( \DOMElement $domContainer, HTMLTree $htmlTree )
 	{
-		$this->_container = $container;
-		$this->_tree      = $tree;
+		$this->domContainer = $domContainer;
+		$this->htmlTree     = $htmlTree;
 	}
 
-	/**
-	 * Return the DOMDocument
-	 *
-	 * @return \DOMDocument|null
-	 */
-	public function getDom()
+	public function getDom() : \DOMDocument
 	{
-		return $this->_container->ownerDocument;
+		return $this->domContainer->ownerDocument;
 	}
 
-	/**
-	 * Return the container DOMElement
-	 *
-	 * @return \DOMElement|null
-	 */
-	public function getContainer()
+	public function getDomContainer() : \DOMElement
 	{
-		return $this->_container;
+		return $this->domContainer;
 	}
 
-	/**
-	 * Return the HTMLTree
-	 *
-	 * @return HTMLTree|null
-	 */
-	public function getTree()
+	public function getHtmlTree() : HTMLTree
 	{
-		return $this->_tree;
+		return $this->htmlTree;
 	}
 
-	/**
-	 * Add an asset with type
-	 *
-	 * @param string $type
-	 * @param string $asset
-	 */
-	public function addAsset( $type, $asset )
+	public function addAsset( string $type, string $asset ) : void
 	{
-		$this->_assets[ $type ][] = $asset;
+		$this->assets[ $type ][] = $asset;
 	}
 
-	/**
-	 * Set all assets by an array
-	 *
-	 * @param array $assets
-	 */
-	public function setAssetsArray( array $assets )
+	public function setAssetsArray( array $assets ) : void
 	{
-		$this->_assets = $assets;
+		$this->assets = $assets;
 	}
 
-	/**
-	 * Get assets (of type)
-	 *
-	 * @param null|string $type
-	 *
-	 * @return array
-	 */
-	public function getAssets( $type = null )
+	public function getAssets( ?string $type = null ) : array
 	{
-		$assets = array();
-		if ( is_null( $type ) )
+		if ( null === $type )
 		{
-			$assets = $this->_assets;
-		}
-		elseif ( array_key_exists( $type, $this->_assets ) )
-		{
-			$assets = $this->_assets[ $type ];
+			return $this->assets;
 		}
 
-		return $assets;
+		return $this->assets[ $type ] ?? [];
 	}
 
-	/**
-	 * Return the options (wrapper)
-	 *
-	 * @return Options
-	 */
-	public function getOptions()
+	public function getOptions() : Options
 	{
-		return $this->_tree->getOptions();
+		return $this->htmlTree->getOptions();
 	}
 
-	/**
-	 * Return a new \DOMElement with attributes
-	 *
-	 * @param string      $name
-	 * @param array       $attributes
-	 * @param string|null $content
-	 *
-	 * @return \DOMElement
-	 */
-	public function getElementWithAttributes( $name, array $attributes, $content = null )
+	public function getElementWithAttributes( string $name, array $attributes, string $content = '' ) : \DOMElement
 	{
 		$elem = $this->getDom()->createElement( $name, $content );
 
@@ -162,16 +87,10 @@ abstract class AbstractSection
 		return $elem;
 	}
 
-	/**
-	 * Prepare the section
-	 */
-	public function prepare()
+	public function prepare() : void
 	{
 		// Override in extending classes
 	}
 
-	/**
-	 * Add the section nodes
-	 */
-	abstract public function addNodes();
+	abstract public function addNodes() : void;
 }
