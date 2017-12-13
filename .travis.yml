@@ -1,0 +1,24 @@
+language: php
+
+php:
+  - 7.1
+  - 7.2
+
+branches:
+  only:
+    - master
+    - development
+    - /^feature\/.+$/
+
+before_script:
+ - git checkout $TRAVIS_BRANCH
+ - composer self-update
+ - mkdir -p vendor/bin
+ - composer install -o --prefer-dist --no-interaction
+ - mkdir build/logs
+
+script:
+ - php vendor/bin/phpunit.phar -c build/
+
+after_success:
+ - travis_retry php vendor/bin/coveralls.phar -v --exclude-no-stmt
