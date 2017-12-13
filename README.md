@@ -1,3 +1,9 @@
+[![Build Status](https://travis-ci.org/hollodotme/TreeMDown.svg?branch=master)](https://travis-ci.org/hollodotme/TreeMDown)
+[![Coverage Status](https://coveralls.io/repos/github/hollodotme/TreeMDown/badge.svg?branch=master)](https://coveralls.io/github/hollodotme/TreeMDown?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/hollodotme/TreeMDown/v/stable)](https://packagist.org/packages/hollodotme/TreeMDown) 
+[![Total Downloads](https://poser.pugx.org/hollodotme/TreeMDown/downloads)](https://packagist.org/packages/hollodotme/TreeMDown) 
+[![License](https://poser.pugx.org/hollodotme/TreeMDown/license)](https://packagist.org/packages/hollodotme/TreeMDown)
+
 # TreeMDown `[triː <'em> daʊn]`
 
 ... is a single page PHP application for browsing markdown documents in a file structure and translating them to HTML.
