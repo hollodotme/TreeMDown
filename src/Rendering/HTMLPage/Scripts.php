@@ -15,21 +15,14 @@ class Scripts extends AbstractSection
 {
 	public function addNodes() : void
 	{
-		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $js_file )
+		foreach ( $this->getAssets( HTMLPage::ASSET_JS ) as $jsFile )
 		{
-			$file_content = file_get_contents( $js_file );
-			$file_content = str_replace( '</script>', '<\/script>', $file_content );
+			$fileContent = file_get_contents( $jsFile );
+			$fileContent = str_replace( '</script>', '<\/script>', $fileContent );
 
-			$elem         = $this->getElementWithAttributes( 'script', array('type' => 'text/javascript') );
-			$elem->appendChild( $this->getDom()->createCDATASection( $file_content ) );
+			$elem = $this->getElementWithAttributes( 'script', ['type' => 'text/javascript'] );
+			$elem->appendChild( $this->getDom()->createCDATASection( $fileContent ) );
 			$this->getDomContainer()->appendChild( $elem );
 		}
-
-		$this->getDomContainer()->appendChild(
-			$this->getElementWithAttributes(
-				'script', array('type' => 'text/javascript'),
-				'hljs.initHighlightingOnLoad();'
-			)
-		);
 	}
 }
