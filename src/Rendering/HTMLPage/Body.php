@@ -167,7 +167,7 @@ class Body extends AbstractSection
 		$dom               = $domImplementation->createDocument( '', 'html', $docType );
 		$container         = $dom->documentElement;
 
-		$tocHeadline = $dom->createElement( 'h2', 'Table of Contents' );
+		$tocHeadline = $dom->createElement( 'h4', 'Table of Contents' );
 		$container->appendChild( $tocHeadline );
 
 		// setup the table of contents element
@@ -250,7 +250,7 @@ class Body extends AbstractSection
 		$dom               = $domImplementation->createDocument( '', 'html', $docType );
 		$container         = $dom->documentElement;
 
-		$tofHeadline = $dom->createElement( 'h2', 'Figures' );
+		$tofHeadline = $dom->createElement( 'h4', 'Figures' );
 		$container->appendChild( $tofHeadline );
 
 		// setup the table of contents element
