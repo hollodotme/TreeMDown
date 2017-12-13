@@ -30,13 +30,12 @@ class Footer extends AbstractSection
 		$content->appendChild( $this->getDom()->createElement( 'hr' ) );
 
 		$spanCompany = $this->getElementWithAttributes(
-			'span',
-			['class' => 'pull-right small text-muted'],
+			'div',
+			['class' => 'small text-muted'],
 			sprintf(
-				'%s by %s %s',
+				'%s by %s',
 				$this->getOptions()->get( Opt::NAME_PROJECT ),
-				$this->getOptions()->get( Opt::NAME_COMPANY ),
-				date( 'Y' )
+				$this->getOptions()->get( Opt::NAME_COMPANY )
 			)
 		);
 
