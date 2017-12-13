@@ -84,7 +84,7 @@ class Body extends AbstractSection
 				$parser = new \ParsedownExtra();
 
 				$fileEncoder = new FileEncoder( $curentFileWithRoot );
-				$markdown    = $parser->text( utf8_decode( $fileEncoder->getFileContents() ) );
+				$markdown    = $parser->text( mb_convert_encoding($fileEncoder->getFileContents(), 'HTML-ENTITIES', 'UTF-8') );
 
 				if ( !empty( $markdown ) )
 				{
