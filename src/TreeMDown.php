@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 /**
- * Main class for using TreeMDown
  * @author hollodotme
  */
 
@@ -20,7 +19,6 @@ use hollodotme\TreeMDown\Utilities\FileEncoder;
  */
 class TreeMDown
 {
-
 	/** @var Options */
 	protected $options;
 
@@ -149,64 +147,6 @@ class TreeMDown
 		$this->options->set( Opt::GITHUB_RIBBON_ENABLED, false );
 	}
 
-	protected function prepareOptions() : void
-	{
-		// Current file
-		if ( isset( $_GET['tmd_f'] ) && !empty( $_GET['tmd_f'] ) )
-		{
-			$current_file = trim( $_GET['tmd_f'], "\t\r\n\0\x0B/" );
-		}
-		else
-		{
-			$current_file = $this->options->get( Opt::FILE_DEFAULT );
-		}
-
-		$this->options->set(
-			Opt::FILE_CURRENT,
-			realpath( $this->options->get( Opt::DIR_ROOT ) . DIRECTORY_SEPARATOR . $current_file )
-		);
-
-		// Output type
-		if ( isset( $_GET['tmd_r'] ) && !empty( $_GET['tmd_r'] ) )
-		{
-			$output_type = Opt::OUTPUT_TYPE_RAW;
-		}
-		else
-		{
-			$output_type = Opt::OUTPUT_TYPE_DOM;
-		}
-
-		$this->options->set( Opt::OUTPUT_TYPE, $output_type );
-
-		// Search term
-		$this->options->set( Opt::SEARCH_TERM, isset( $_GET['tmd_q'] ) ? (string)$_GET['tmd_q'] : '' );
-
-		// Base params
-		$base_params = [
-			'tmd_f' => $current_file,
-			'tmd_q' => $this->options->get( Opt::SEARCH_TERM ),
-		];
-
-		$this->options->set( Opt::BASE_PARAMS, $base_params );
-	}
-
-	protected function prepareSearch() : void
-	{
-		// Init search
-		$this->search = new Search( $this->options );
-	}
-
-	protected function prepareTree() : void
-	{
-		// Init tree
-		$this->tree = new HTMLTree( $this->search );
-	}
-
-	protected function preparePage() : void
-	{
-		$this->page = new HTMLPage( $this->tree );
-	}
-
 	/**
 	 * @param array $headers Output headers
 	 *
@@ -219,63 +159,104 @@ class TreeMDown
 		$this->prepareSearch();
 		$this->prepareTree();
 
-		// Raw output?
 		switch ( $this->options->get( Opt::OUTPUT_TYPE ) )
 		{
 			case Opt::OUTPUT_TYPE_RAW :
+				$headers['Content-Type'] = 'text/plain; charset=UTF-8';
+				$currentFile             = $this->search->getCurrentFile();
+				$output                  = 'Your current selection is not valid.';
+
+				if ( $this->search->isCurrentFileValid() && is_file( $currentFile ) )
 				{
-					$headers['Content-type'] = 'text/plain; charset=UTF-8';
-
-					$current_file = $this->search->getCurrentFile();
-
-					if ( $this->search->isCurrentFileValid() && is_file( $current_file ) )
-					{
-						$file_encoder = new FileEncoder( $current_file );
-						$output       = $file_encoder->getFileContents();
-					}
-					else
-					{
-						$output = 'Your current selection is not valid.';
-					}
-
-					break;
+					$fileEncoder = new FileEncoder( $currentFile );
+					$output      = $fileEncoder->getFileContents();
 				}
+
+				break;
+
 			case Opt::OUTPUT_TYPE_DOM:
-				{
-					$headers['Content-type'] = 'text/html; charset=UTF-8';
 
-					$this->tree->buildTree();
+				$this->tree->buildTree();
+				$this->preparePage();
 
-					$this->preparePage();
+				$headers['Content-Type'] = 'text/html; charset=UTF-8';
+				$output                  = $this->page->getDOMDocument();
 
-					$output = $this->page->getDOMDocument();
+				break;
 
-					break;
-				}
 			default:
-				{
-					$output = 'No valid output type set.';
-				}
+				$output = 'No valid output type set.';
 		}
 
 		return $output;
 	}
 
+	protected function prepareOptions() : void
+	{
+		// Current file
+		$currentFile = $this->options->get( Opt::FILE_DEFAULT );
+		if ( isset( $_GET['tmd_f'] ) && !empty( $_GET['tmd_f'] ) )
+		{
+			$currentFile = trim( $_GET['tmd_f'], "\t\r\n\0\x0B/" );
+		}
+
+		$this->options->set(
+			Opt::FILE_CURRENT,
+			realpath( $this->options->get( Opt::DIR_ROOT ) . DIRECTORY_SEPARATOR . $currentFile )
+		);
+
+		// Output type
+		$outputType = Opt::OUTPUT_TYPE_DOM;
+		if ( isset( $_GET['tmd_r'] ) && !empty( $_GET['tmd_r'] ) )
+		{
+			$outputType = Opt::OUTPUT_TYPE_RAW;
+		}
+
+		$this->options->set( Opt::OUTPUT_TYPE, $outputType );
+
+		// Search term
+		$this->options->set( Opt::SEARCH_TERM, (string)($_GET['tmd_q'] ?? '') );
+
+		// Base params
+		$baseParams = [
+			'tmd_f' => $currentFile,
+			'tmd_q' => $this->options->get( Opt::SEARCH_TERM ),
+		];
+
+		$this->options->set( Opt::BASE_PARAMS, $baseParams );
+	}
+
+	protected function prepareSearch() : void
+	{
+		$this->search = new Search( $this->options );
+	}
+
+	protected function prepareTree() : void
+	{
+		$this->tree = new HTMLTree( $this->search );
+	}
+
+	protected function preparePage() : void
+	{
+		$this->page = new HTMLPage( $this->tree );
+	}
+
 	public function display() : void
 	{
 		$headers = [];
+
 		try
 		{
 			$output = $this->getOutput( $headers );
 		}
-		catch ( \RuntimeException $e )
+		catch ( \Throwable $e )
 		{
 			$output = 'An error occurred: ' . $e->getMessage();
 		}
 
 		foreach ( $headers as $type => $value )
 		{
-			header( "{$type}: {$value}" );
+			header( "{$type}: {$value}", true, 200 );
 		}
 
 		if ( $output instanceof \DOMDocument )
