@@ -38,6 +38,7 @@ class Head extends AbstractSection
 				case 'eot':
 				case 'ttf':
 				case 'woff':
+				case 'woff2':
 					$search[]  = sprintf( 'url(../fonts/%s', $filename );
 					$replace[] = sprintf( 'url(data:font/%s;base64,%s', $matches[1], $fileContent );
 					break;
