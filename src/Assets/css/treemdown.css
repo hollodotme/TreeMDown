@@ -4,6 +4,48 @@
  * url: https://github.com/hollodotme/TreeMDown
  */
 
+/* latin-ext */
+@font-face {
+    font-family: 'Oxygen';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Oxygen Regular'), local('Oxygen-Regular'), url(../fonts/LC4u_jU27qpsdszDEgeU_3-_kf6ByYO6CLYdB4HQE-Y.woff2) format('woff2');
+    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+20A0-20AB, U+20AD-20CF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* latin */
+@font-face {
+    font-family: 'Oxygen';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Oxygen Regular'), local('Oxygen-Regular'), url(../fonts/qBSyz106i5ud7wkBU-FrPevvDin1pK8aKteLpeZ5c0A.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2212, U+2215;
+}
+
+* html, body {
+    font-family: Oxygen, Arial, Verdana, sans-serif;
+    line-height: 1.5em;
+    font-size: 12pt;
+    color: #505050;
+}
+
+hr {
+    border: 0;
+    border-bottom: 3px solid #f6f6f6;
+    height: 1px;
+    background: transparent;
+}
+
+a {
+    color: #b92c28;
+}
+
+a:hover,
+a:active,
+a:focus {
+    color: #7a201f;
+}
+
 .tmd-tree-list {
     padding-left: 16px;
     list-style-type: none;
@@ -16,40 +58,101 @@
 }
 
 .tmd-tree-leaf {
-    font-size: 95%;
-    color: #888;
+    color: #909090;
 }
 
 .tmd-tree-leaf.active {
-    font-style: italic;
-    color: #555;
+    font-weight: bold;
+    color: #fafafa;
+}
+
+.tmd-folder-link {
+    color: #a0a0a0;
+}
+
+.tmd-folder-link:hover,
+.tmd-folder-link:active,
+.tmd-folder-link:focus {
+    color: #f6f6f6;
+    text-decoration: none;
+}
+
+.tmd-tree-leaf:hover,
+.tmd-tree-leaf:active,
+.tmd-tree-leaf:focus {
+    color: #f6f6f6;
+    text-decoration: none;
 }
 
 .tmd-folder-link span.glyphicon,
 .tmd-tree-leaf span.glyphicon {
-    margin-right: 5px;
-    font-size: 85%;
+    color: #a0a0a0;
+    margin-right: 8px;
+    font-size: 10pt;
 }
 
-.tmd-tree-leaf span.glyphicon {
-    color: #999;
+.tmd-folder-link.active,
+.tmd-folder-link.active span.glyphicon {
+    color: #f6f6f6;
+    font-weight: bold;
+}
+
+.tmd-tree-leaf.active span.glyphicon {
+    color: #f6f6f6;
+    font-weight: bold;
 }
 
 .tmd-folder-link span.badge,
 .tmd-tree-leaf span.badge {
-    background: #999;
-    font-size: 80%;
+    background: #a0a0a0;
+    color: #202020;
+    font-size: 9pt;
     padding: 2px 5px;
     margin-top: 2px;
     font-style: normal;
     font-weight: normal;
     margin-left: 10px;
+    min-width: 17px;
 }
 
 .tmd-folder-link span.badge.active,
 .tmd-tree-leaf span.badge.active {
-    background: #66afe9;
+    background: #f6f6f6;
     font-weight: bold;
+}
+
+.navbar.navbar-default {
+    background: #202020;
+    border-bottom: 1px solid #000000;
+    color: #f6f6f6;
+}
+
+.navbar.navbar-default a,
+.navbar.navbar-default li a {
+    color: #f6f6f6;
+    text-shadow: none;
+}
+
+.navbar.navbar-default a:hover,
+.navbar.navbar-default a:active,
+.navbar.navbar-default a:focus,
+.navbar.navbar-default li a:hover,
+.navbar.navbar-default li a:active,
+.navbar.navbar-default li a:focus {
+    color: #fefefe;
+    text-shadow: none;
+}
+
+.navbar .btn.btn-default {
+    color: #f6f6f6;
+    background: #444444;
+    border-color: #000000;
+}
+
+.navbar .btn.btn-danger,
+.navbar .input-group-addon,
+.navbar .form-control {
+    border-color: #000000;
 }
 
 /*
@@ -72,26 +175,69 @@
         padding: 20px 20px 60px 20px;
         overflow-x: hidden;
         overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-        background-color: #fff;
+        background-color: #333333;
         border-right: 1px solid #ddd;
     }
 }
 
-.tmd-main-content {
+.tmd-main-content,
+.markdown-content {
     margin-top: 45px;
+    color: #404040;
+}
+
+.tmd-main-content pre {
+    background-color: #333333;
+}
+
+.tmd-main-content pre > code {
+    text-shadow: none;
+    color: inherit;
+    background-color: inherit;
+}
+
+.tmd-main-content code {
+    color: #222222;
+    background-color: rgba(103, 172, 104, 0.55);
+}
+
+.tmd-main-content h1,
+.tmd-main-content h2,
+.tmd-main-content h3,
+.tmd-main-content h4,
+.tmd-main-content h5,
+.tmd-main-content h6 {
+    color: #202020;
+    border: 0;
+    line-height: 1.9em;
+    font-weight: bold;
+}
+
+.tmd-main-content blockquote {
+    font-size: 12pt;
+    letter-spacing: 0.1em;
+    background-color: #fafafa;
+    color: #808080;
+}
+
+.tmd-main-content ul,
+.tmd-main-content ol,
+.tmd-main-content li {
+    margin: 0;
 }
 
 #toc {
     position: fixed;
     top: 51px;
     right: 0;
-    bottom: 70px;
+    bottom: 25%;
     padding: 20px;
     overflow-x: hidden;
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
     display: block;
-    background-color: #fff;
+    background-color: #f6f6f6;
     z-index: 1000;
+    border-bottom-left-radius: 50px;
 }
 
 .tmd-toc-1,
@@ -131,7 +277,7 @@
 
 .tmd-toc-1 li a,
 .tmd-toc-1.nav li a {
-    border-left: 2px solid #fff;
+    border-left: 2px solid #f6f6f6;
     padding: 0 0 0 5px;
     text-decoration: none;
     display: block;
@@ -141,14 +287,14 @@
 .tmd-toc-1 li a:hover,
 .tmd-toc-1.nav li a:hover,
 .tmd-toc-1.nav li.active a {
-    border-left: 2px solid #b92c28;
+    border-left: 2px solid #222222;
     text-decoration: none;
     background: none;
 }
 
 .tmd-toc-2.nav li a,
 .tmd-toc-1.nav > li.active li a {
-    border-left: 1px solid #fff;
+    border-left: 1px solid #f6f6f6;
     text-decoration: none;
     display: block;
     margin: 0;
@@ -157,7 +303,7 @@
 
 .tmd-toc-2.nav li a:hover,
 .tmd-toc-1.nav > li.active li.active a {
-    border-left: 1px solid #b92c28;
+    border-left: 1px solid #222222;
     text-decoration: none;
     background: none;
 }

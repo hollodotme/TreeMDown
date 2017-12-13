@@ -4,7 +4,7 @@
  * url: https://github.com/hollootme/TreeMDown
  */
 
-$(function () {
+$(document).ready(function () {
     $('.tmd-folder-link').click(function (event) {
         var toggle_id = $(this).data('subtree-id');
         $('#' + toggle_id).toggle();
