@@ -60,11 +60,17 @@ class HTMLPage
 		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.ttf' );
 		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.svg' );
 		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/glyphicons-halflings-regular.woff' );
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/qBSyz106i5ud7wkBU-FrPevvDin1pK8aKteLpeZ5c0A.woff2' );
-		$head->addAsset( self::ASSET_FONT, __DIR__ . '/../Assets/fonts/LC4u_jU27qpsdszDEgeU_3-_kf6ByYO6CLYdB4HQE-Y.woff2' );
+		$head->addAsset(
+			self::ASSET_FONT,
+			__DIR__ . '/../Assets/fonts/qBSyz106i5ud7wkBU-FrPevvDin1pK8aKteLpeZ5c0A.woff2'
+		);
+		$head->addAsset(
+			self::ASSET_FONT,
+			__DIR__ . '/../Assets/fonts/LC4u_jU27qpsdszDEgeU_3-_kf6ByYO6CLYdB4HQE-Y.woff2'
+		);
 
 		// Add css assets
-		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.2.0.min.css' );
+		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-3.3.7.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/bootstrap-theme-3.2.0.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/prism.min.css' );
 		$head->addAsset( self::ASSET_CSS, __DIR__ . '/../Assets/css/treemdown.min.css' );
@@ -78,8 +84,8 @@ class HTMLPage
 		$body = new HTMLPage\Body( $this->dom->documentElement, $this->tree );
 
 		// Add script assets
-		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-2.1.1.min.js' );
-		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.2.0.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/jquery-3.2.1.min.js' );
+		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/bootstrap-3.3.7.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/treemdown.min.js' );
 		$body->addAsset( self::ASSET_JS, __DIR__ . '/../Assets/js/prism.js' );
 
