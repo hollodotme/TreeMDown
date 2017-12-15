@@ -23,7 +23,7 @@ class Footer extends AbstractSection
 
 		$content = $this->getElementWithAttributes(
 			'div',
-			['class' => 'col-lg-9 col-lg-offset-3 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12']
+			['class' => 'col-lg-10 col-lg-offset-2 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12']
 		);
 		$row->appendChild( $content );
 
