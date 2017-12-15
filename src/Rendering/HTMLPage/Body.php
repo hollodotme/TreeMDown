@@ -321,7 +321,7 @@ class Body extends AbstractSection
 		$container->appendChild( $row );
 
 		$sidebarColumn = $this->getDom()->createElement( 'div' );
-		$sidebarColumn->setAttribute( 'class', 'col-lg-3 col-md-3 col-sm-4 hidden-xs sidebar' );
+		$sidebarColumn->setAttribute( 'class', 'col-lg-2 col-md-3 col-sm-4 hidden-xs sidebar' );
 		$sidebarColumn->setAttribute( 'id', 'tmd-sidebar' );
 		$sidebarColumn->setIdAttribute( 'id', true );
 		$row->appendChild( $sidebarColumn );
@@ -334,7 +334,7 @@ class Body extends AbstractSection
 		{
 			$contentColumn->setAttribute(
 				'class',
-				'col-lg-7 col-lg-offset-3 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+				'col-lg-8 col-lg-offset-2 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
 			);
 
 			// Add TOC column
@@ -362,7 +362,7 @@ class Body extends AbstractSection
 		{
 			$contentColumn->setAttribute(
 				'class',
-				'col-lg-7 col-lg-offset-3 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+				'col-lg-8 col-lg-offset-2 col-md-7 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
 			);
 
 			// Add TOF column
@@ -381,7 +381,7 @@ class Body extends AbstractSection
 		{
 			$contentColumn->setAttribute(
 				'class',
-				'col-lg-9 col-lg-offset-3 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
+				'col-lg-10 col-lg-offset-2 col-md-9 col-md-offset-3 col-sm-8 col-sm-offset-4 col-xs-12 content'
 			);
 		}
 
