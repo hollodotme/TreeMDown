@@ -236,7 +236,7 @@ code {
 	display: block;
 	background-color: #f6f6f6;
 	z-index: 1000;
-	border-bottom-left-radius: 50px;
+	border-bottom-left-radius: 25px;
 }
 
 .tmd-toc-1,
@@ -246,7 +246,8 @@ code {
 	list-style-type: none;
 	margin: 5px 0;
 	padding: 0;
-	line-height: normal;
+	line-height: .9em;
+	font-size: small;
 }
 
 .tmd-toc-1.nav > li > .tmd-toc-2.nav {
@@ -317,6 +318,35 @@ h2:hover .tmd-h-toplink,
 h3:hover .tmd-h-toplink {
 	display: inline;
 	cursor: pointer;
+}
+
+table {
+	border: 1px solid #eaeaea;
+	border-collapse: collapse;
+	width: 100%;
+	font-size: smaller;
+}
+
+table td,
+table th {
+	padding: 5px 3px;
+	margin: 0;
+	border: 1px solid #eaeaea;
+}
+
+table > thead > tr > th {
+	background-color: #000000;
+	border: 1px solid #000000;
+	color: #ffffff;
+}
+
+table > tbody > tr:nth-child(even) > td {
+	background-color: #f6f6f6;
+}
+
+.tmd-footer.row {
+	width: 99%;
+	margin-left: 0;
 }
 
 /* Print rules */
